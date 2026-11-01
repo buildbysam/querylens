@@ -1,4 +1,5 @@
-import health from "@/modules/health/routes.js";
+import { health } from "@/modules/health/routes.js";
+import { jsxMiddleware, staticMiddleware } from "@/shared/middleware/frontend.js";
 import { serve } from "@hono/node-server";
 import "dotenv/config";
 import { Hono } from "hono";
@@ -6,17 +7,24 @@ import { Hono } from "hono";
 const port = Number(process.env.PORT) || 5000;
 const app = new Hono();
 
+// static files
+app.use("/css/*", staticMiddleware);
+app.use("/images/*", staticMiddleware);
+
+// jsx renderer (excluding api)
+app.use("*", async (c, next) => {
+  if (c.req.path === "/api" || c.req.path.startsWith("/api/")) {
+    return next();
+  }
+  return jsxMiddleware(c, next);
+});
+
+// routes
 app.route("/health", health);
 
-const server = serve(
-  {
-    fetch: app.fetch,
-    port,
-  },
-  (info) => {
-    console.log(`Server is running on http://localhost:${info.port}`);
-  }
-);
+const server = serve({ fetch: app.fetch, port }, (info) => {
+  console.log(`Server is running on http://localhost:${info.port}`);
+});
 
 // graceful shutdown handlers
 process.on("SIGTERM", () => shutdown("SIGTERM"));

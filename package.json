@@ -2,9 +2,9 @@
   "name": "querylens",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
-    "build": "tsc",
-    "start": "node dist/index.js",
+    "dev": "dotenv run -f .env -- concurrently \"tsx watch src/index.ts\" \"tailwindcss -i ./src/global.css -o ./public/css/styles.css --watch\"",
+    "build": "dotenv run -f .env.production -- node scripts/build.js",
+    "start": "dotenv run -f .env.production -- node dist/index.js",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
@@ -14,9 +14,12 @@
     "hono": "^4.13.14"
   },
   "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
     "@types/node": "^26.1.1",
+    "concurrently": "^10.0.6",
     "prettier": "^3.9.10",
     "prettier-plugin-tailwindcss": "^0.8.1",
+    "tailwindcss": "^4.3.3",
     "tsx": "^4.23.0",
     "typescript": "^7.0.2"
   },

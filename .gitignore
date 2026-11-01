@@ -32,3 +32,6 @@ lerna-debug.log*
 out
 build
 dist
+
+# generated css
+/public/css/styles.css

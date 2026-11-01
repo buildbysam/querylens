@@ -4,7 +4,7 @@ interface HealthPageProps {
   message: string;
 }
 
-export const HealthPage: FC<HealthPageProps> = (props: HealthPageProps) => {
+export const HealthPage: FC<HealthPageProps> = (props) => {
   return (
     <>
       <h1>Health Page</h1>
