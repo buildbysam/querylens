@@ -9,6 +9,10 @@ app.get("/", (c) => {
   return c.text("Hello Hono!");
 });
 
+app.get('/health', (c) => {
+  return c.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 serve(
   {
     fetch: app.fetch,

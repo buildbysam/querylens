@@ -1,0 +1,49 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# build output
+dist/
+build/
+out/
+.output/
+.turbo/
+
+# environment files
+.env
+.env.*
+!.env.example
+
+# logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# deployment and platform
+.wrangler/
+.dev.vars
+.vercel/
+.netlify/
+
+# generated files
+*.min.js
+*.min.css
+*.generated.*
+*.gen.ts
+
+# lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+bun.lock
+bun.lockb
+
+# ide and editor
+.vscode/
+.idea/
+
+# os files
+.DS_Store
+Thumbs.db
