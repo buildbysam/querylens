@@ -1,24 +1,46 @@
+import health from "@/modules/health/routes.js";
 import { serve } from "@hono/node-server";
 import "dotenv/config";
 import { Hono } from "hono";
 
-const app = new Hono();
 const port = Number(process.env.PORT) || 5000;
+const app = new Hono();
 
-app.get("/", (c) => {
-  return c.text("Hello Hono!");
-});
+app.route("/health", health);
 
-app.get('/health', (c) => {
-  return c.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
-
-serve(
+const server = serve(
   {
     fetch: app.fetch,
     port,
   },
   (info) => {
     console.log(`Server is running on http://localhost:${info.port}`);
-  },
+  }
 );
+
+// graceful shutdown handlers
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));
+
+// handle unexpected errors
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught exception:", err);
+  shutdown("uncaughtException");
+});
+
+process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled rejection:", reason);
+  shutdown("unhandledRejection");
+});
+
+function shutdown(signal: string) {
+  console.log(`Received ${signal}, closing application...`);
+  server.close((err) => {
+    if (err) {
+      console.error("Error during shutdown:", err);
+      process.exit(1);
+    }
+    console.log("Application closed successfully!");
+    process.exit(0);
+  });
+}

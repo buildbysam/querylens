@@ -5,13 +5,19 @@
     "strict": true,
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
-    "types": [
-      "node"
-    ],
+    "types": ["node"],
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
     "rootDir": "./src",
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@modules": ["./src/modules/*"],
+      "@lib": ["./src/shared/lib/*"],
+      "@db": ["./src/shared/db/*"],
+      "@views": ["./src/shared/views/*"],
+      "@middleware": ["./src/shared/middleware/*"]
+    }
   },
   "exclude": ["node_modules"]
 }
