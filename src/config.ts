@@ -141,6 +141,10 @@ class Config {
     }
     return value;
   }
+
+  get isProduction() {
+    return this.getOrThrow("NODE_ENV") === NodeEnv.Production;
+  }
 }
 
 export const config = new Config({

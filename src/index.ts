@@ -1,5 +1,6 @@
 import { config } from "@/config.js";
 import { health } from "@/modules/health/routes.js";
+import { database } from "@/shared/db/client.js";
 import { jsxMiddleware, staticMiddleware } from "@/shared/middleware/frontend.js";
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
@@ -43,11 +44,12 @@ process.on("unhandledRejection", (reason) => {
 
 function shutdown(signal: string) {
   console.log(`Received ${signal}, closing application...`);
-  server.close((err) => {
+  server.close(async (err) => {
     if (err) {
       console.error("Error during shutdown:", err);
       process.exit(1);
     }
+    await database.close();
     console.log("Application closed successfully!");
     process.exit(0);
   });

@@ -2,21 +2,27 @@
   "name": "querylens",
   "type": "module",
   "scripts": {
-    "dev": "dotenv run -f .env -- concurrently \"tsx watch src/index.ts\" \"tailwindcss -i ./src/global.css -o ./public/css/styles.css --watch\"",
-    "build": "dotenv run -f .env.production -- node scripts/build.js",
-    "start": "dotenv run -f .env.production -- node dist/index.js",
+    "dev:hono": "tsx watch src/index.ts",
+    "dev": "concurrently \"tsx watch src/index.ts\" \"tailwindcss -i ./src/global.css -o ./public/css/styles.css --watch\"",
+    "build": "dotenv run -f .env -- node scripts/build.js",
+    "start": "dotenv run -f .env -- node dist/index.js",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
   "dependencies": {
     "@hono/node-server": "^2.1.3",
     "dotenv": "^18.0.9",
-    "hono": "^4.13.14"
+    "drizzle-orm": "1.0.0-rc.5",
+    "hono": "^4.13.14",
+    "pg": "^8.23.1",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.3.3",
     "@types/node": "^26.1.1",
+    "@types/pg": "^8.23.1",
     "concurrently": "^10.0.6",
+    "drizzle-kit": "1.0.0-rc.5",
     "prettier": "^3.9.10",
     "prettier-plugin-tailwindcss": "^0.8.1",
     "tailwindcss": "^4.3.3",
