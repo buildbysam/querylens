@@ -1,4 +1,5 @@
 import { config, LogLevel } from "@/config.js";
+import { createMiddleware } from "hono/factory";
 import { createLogger, format, Logger, transports } from "winston";
 import "winston-daily-rotate-file";
 
@@ -78,6 +79,10 @@ class LoggerService {
 
 export const logger = new LoggerService();
 
-export function loggerMiddleware(message: string, ...rest: string[]) {
-  logger.log(`${message}, ${rest.join(", ")}`, "HTTP");
-}
+export const loggerMiddleware = createMiddleware(async (c, next) => {
+  const start = performance.now();
+  await next();
+  const duration = Math.round(performance.now() - start);
+  const logMessage = `${c.req.method} ${new URL(c.req.url).pathname} ${c.res.status} - ${duration}ms`;
+  logger.log(logMessage, "HTTP");
+});

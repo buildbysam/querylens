@@ -5,12 +5,11 @@ import { jsxMiddleware, staticMiddleware } from "@/shared/middleware/frontend.js
 import { loggerMiddleware } from "@/shared/middleware/logger.js";
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
-import { logger } from "hono/logger";
 
 const port = Number(config.getOrThrow("PORT"));
 const app = new Hono();
 
-app.use(logger(loggerMiddleware));
+app.use(loggerMiddleware);
 
 // static files
 app.use("/css/*", staticMiddleware);
