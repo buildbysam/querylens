@@ -1,10 +1,10 @@
+import { config } from "@/config.js";
 import { health } from "@/modules/health/routes.js";
 import { jsxMiddleware, staticMiddleware } from "@/shared/middleware/frontend.js";
 import { serve } from "@hono/node-server";
-import "dotenv/config";
 import { Hono } from "hono";
 
-const port = Number(process.env.PORT) || 5000;
+const port = Number(config.getOrThrow("PORT"));
 const app = new Hono();
 
 // static files
