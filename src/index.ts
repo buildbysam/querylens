@@ -2,14 +2,36 @@ import { config } from "@/config.js";
 import { health } from "@/modules/health/routes.js";
 import { database } from "@/shared/db/client.js";
 import { jsxMiddleware, staticMiddleware } from "@/shared/middleware/frontend.js";
-import { loggerMiddleware } from "@/shared/middleware/logger.js";
+import { logger, loggerMiddleware } from "@/shared/middleware/logger.js";
 import { serve } from "@hono/node-server";
+import { getConnInfo } from "@hono/node-server/conninfo";
 import { Hono } from "hono";
+import { rateLimiter } from "hono-rate-limiter";
 
 const port = Number(config.getOrThrow("PORT"));
 const app = new Hono();
 
+// register middlewares
 app.use(loggerMiddleware);
+app.use(
+  rateLimiter({
+    windowMs: 15 * 60 * 1000,
+    limit: 100,
+    keyGenerator: (c) => getConnInfo(c).remote.address ?? "unknown",
+    handler: async (c, next, options) => {
+      const val = await options.keyGenerator(c);
+      logger.error(`Rate limit exceeded for ${val}`);
+      // render and send error page here
+      return c.json(
+        {
+          error: "Too many requests",
+          retryAfter: c.res.headers.get("Retry-After"),
+        },
+        429
+      );
+    },
+  })
+);
 
 // static files
 app.use("/css/*", staticMiddleware);
