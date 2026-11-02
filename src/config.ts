@@ -1,7 +1,14 @@
-import { postgresDatabaseSchema } from "@/shared/db/schema.js";
 import * as dotenv from "dotenv";
 import * as fs from "node:fs";
 import z from "zod";
+
+export const postgresUrlSchema = (name: string) =>
+  z
+    .string()
+    .min(1, { message: `${name} must not be empty` })
+    .regex(/^postgres(ql)?:\/\/.+/, {
+      message: `${name} must be a valid PostgreSQL DSN (e.g. postgresql://user:pass@host:5432/db)`,
+    });
 
 export enum NodeEnv {
   Development = "development",
@@ -35,7 +42,7 @@ export const EnvironmentVariablesSchema = z.object({
     .int({ message: "PORT must be an integer" })
     .min(1, { message: "PORT must be >= 1" })
     .max(65535, { message: "PORT must be <= 65535" }),
-  DATABASE_URL: postgresDatabaseSchema,
+  DATABASE_URL: postgresUrlSchema("DATABASE_URL"),
   COOKIES_SECRET: z
     .string()
     .transform((value) => {
