@@ -2,11 +2,15 @@ import { config } from "@/config.js";
 import { health } from "@/modules/health/routes.js";
 import { database } from "@/shared/db/client.js";
 import { jsxMiddleware, staticMiddleware } from "@/shared/middleware/frontend.js";
+import { loggerMiddleware } from "@/shared/middleware/logger.js";
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
+import { logger } from "hono/logger";
 
 const port = Number(config.getOrThrow("PORT"));
 const app = new Hono();
+
+app.use(logger(loggerMiddleware));
 
 // static files
 app.use("/css/*", staticMiddleware);

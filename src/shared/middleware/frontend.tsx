@@ -1,3 +1,4 @@
+import { config } from "@/config.js";
 import { BaseLayout, type BaseLayoutProps } from "@/shared/views/layout.js";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { jsxRenderer } from "hono/jsx-renderer";
@@ -8,10 +9,8 @@ declare module "hono" {
   }
 }
 
-const isProduction = process.env.NODE_ENV === "production";
-
 export const staticMiddleware = serveStatic({
-  root: isProduction ? "./dist/public" : "./public",
+  root: config.isProduction ? "./dist/public" : "./public",
 });
 
 export const jsxMiddleware = jsxRenderer(({ children, title }) => {
