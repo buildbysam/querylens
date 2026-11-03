@@ -6,6 +6,5 @@ export const health = new Hono();
 
 health.get("/", async (c) => {
   const services = await checkHealth();
-
   return c.render(<HealthPage {...services} />, { title: "Service Health" });
 });

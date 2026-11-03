@@ -1,4 +1,5 @@
 import { database } from "@/shared/db/client.js";
+import { logger } from "@/shared/middleware/logger.js";
 
 export interface HealthCheckResult {
   database: "connected" | "disconnected";
@@ -7,10 +8,10 @@ export interface HealthCheckResult {
 async function checkDatabaseConnection(): Promise<boolean> {
   try {
     await database.db.execute("SELECT 1");
-    // this.logger.log("Database connection is healthy.");
+    logger.log("Database connection is healthy.");
     return true;
   } catch (error) {
-    // this.logger.error("Database connection failed:", error instanceof Error ? error : String(error));
+    logger.error("Database connection failed:", error instanceof Error ? error : String(error));
     return false;
   }
 }
