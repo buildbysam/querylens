@@ -1,37 +1,28 @@
 import { config } from "@/config.js";
+import { auth } from "@/modules/auth/routes.js";
 import { health } from "@/modules/health/routes.js";
 import { database } from "@/shared/db/client.js";
+import { authMiddleware } from "@/shared/middleware/auth.js";
+import { csrfMiddleware } from "@/shared/middleware/csrf.js";
 import { jsxMiddleware, staticMiddleware } from "@/shared/middleware/frontend.js";
-import { logger, loggerMiddleware } from "@/shared/middleware/logger.js";
+import { loggerMiddleware } from "@/shared/middleware/logger.js";
+import { rateLimitMiddleware } from "@/shared/middleware/rate-limit.js";
+import type { AppEnv } from "@/types.js";
 import { serve } from "@hono/node-server";
-import { getConnInfo } from "@hono/node-server/conninfo";
 import { Hono } from "hono";
-import { rateLimiter } from "hono-rate-limiter";
 
 const port = Number(config.getOrThrow("PORT"));
-const app = new Hono();
+const app = new Hono<AppEnv>();
 
 // register middlewares
-app.use(loggerMiddleware);
+app.use("*", csrfMiddleware);
 app.use(
-  rateLimiter({
+  rateLimitMiddleware({
     windowMs: 15 * 60 * 1000,
     limit: 100,
-    keyGenerator: (c) => getConnInfo(c).remote.address ?? "unknown",
-    handler: async (c, next, options) => {
-      const val = await options.keyGenerator(c);
-      logger.error(`Rate limit exceeded for ${val}`);
-      // render and send error page here
-      return c.json(
-        {
-          error: "Too many requests",
-          retryAfter: c.res.headers.get("Retry-After"),
-        },
-        429
-      );
-    },
   })
 );
+app.use(loggerMiddleware);
 
 // static files
 app.use("/css/*", staticMiddleware);
@@ -46,6 +37,8 @@ app.use("*", async (c, next) => {
 });
 
 // routes
+app.route("/", auth);
+app.use(authMiddleware);
 app.route("/health", health);
 
 const server = serve({ fetch: app.fetch, port }, (info) => {

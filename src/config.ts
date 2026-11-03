@@ -10,6 +10,21 @@ export const postgresUrlSchema = (name: string) =>
       message: `${name} must be a valid PostgreSQL DSN (e.g. postgresql://user:pass@host:5432/db)`,
     });
 
+export const secretTokenSchema = (name: string) =>
+  z
+    .string()
+    .transform((value) => {
+      if (SECRET_PLACEHOLDERS.some((placeholder) => value.toLowerCase().includes(placeholder))) {
+        return "";
+      }
+      return value;
+    })
+    .pipe(
+      z.string().min(48, {
+        message: `${name} must be at least 48 characters long`,
+      })
+    );
+
 export enum NodeEnv {
   Development = "development",
   Production = "production",
@@ -37,25 +52,29 @@ export const EnvironmentVariablesSchema = z.object({
   NODE_ENV: z.enum(NodeEnv, {
     message: `NODE_ENV must be one of: ${Object.values(NodeEnv).join(", ")}`,
   }),
+  APP_ORIGIN: z
+    .url({
+      message: "APP_ORIGIN must be a valid URL",
+    })
+    .refine(
+      (appOrigin) => {
+        const url = new URL(appOrigin);
+        return url.origin === appOrigin.replace(/\/$/, "") && !url.search && !url.hash;
+      },
+      {
+        message: "APP_ORIGIN must contain only the application origin",
+        path: ["APP_ORIGIN"],
+      }
+    ),
   PORT: z.coerce
     .number()
     .int({ message: "PORT must be an integer" })
     .min(1, { message: "PORT must be >= 1" })
     .max(65535, { message: "PORT must be <= 65535" }),
   DATABASE_URL: postgresUrlSchema("DATABASE_URL"),
-  COOKIES_SECRET: z
-    .string()
-    .transform((value) => {
-      if (SECRET_PLACEHOLDERS.some((placeholder) => value.toLowerCase().includes(placeholder))) {
-        return "";
-      }
-      return value;
-    })
-    .pipe(
-      z.string().min(48, {
-        message: "COOKIES_SECRET must be at least 48 characters long",
-      })
-    ),
+  COOKIES_SECRET: secretTokenSchema("COOKIES_SECRET"),
+  JWT_ACCESS_SECRET: secretTokenSchema("JWT_ACCESS_SECRET"),
+  JWT_REFRESH_SECRET: secretTokenSchema("JWT_REFRESH_SECRET"),
   LOG_LEVEL: z
     .enum(LogLevel, {
       message: `LOG_LEVEL must be one of: ${Object.values(LogLevel).join(", ")}`,
@@ -130,12 +149,12 @@ class Config {
     this.config = config;
   }
 
-  get<T = string>(propertyPath: string): T | undefined {
-    return this.config[propertyPath] as T | undefined;
+  get(propertyPath: keyof EnvironmentVariables) {
+    return this.config[propertyPath] as EnvironmentVariables[keyof EnvironmentVariables];
   }
 
-  getOrThrow<T = string>(propertyPath: string): T {
-    const value = this.get<T>(propertyPath);
+  getOrThrow(propertyPath: keyof EnvironmentVariables) {
+    const value = this.get(propertyPath);
     if (value === undefined || value === null) {
       throw new Error(`Configuration key "${propertyPath}" is missing`);
     }
