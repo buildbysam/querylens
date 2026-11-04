@@ -10,6 +10,7 @@ import { rateLimitMiddleware } from "@/shared/middleware/rate-limit.js";
 import type { AppEnv } from "@/types.js";
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
+import { secureHeaders } from "hono/secure-headers";
 
 const port = Number(config.getOrThrow("PORT"));
 const app = new Hono<AppEnv>();
@@ -23,6 +24,7 @@ app.use(
   })
 );
 app.use(loggerMiddleware);
+app.use(secureHeaders());
 
 // static files
 app.use("/css/*", staticMiddleware);
