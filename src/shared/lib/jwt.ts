@@ -20,17 +20,21 @@ export async function createAccessToken(userId: string, sessionId: string) {
 }
 
 export async function createRefreshToken(userId: string, sessionId: string) {
-  return new SignJWT({
-    sessionId,
-    type: "refresh",
-  })
-    .setProtectedHeader({ alg: "HS256" })
-    .setSubject(userId)
-    .setIssuedAt()
-    .setExpirationTime("7d")
-    .setIssuer("myapp")
-    .setAudience("myapp")
-    .sign(refreshSecret);
+  return (
+    new SignJWT({
+      sessionId,
+      type: "refresh",
+    })
+      .setProtectedHeader({ alg: "HS256" })
+      // unique per issue, so a rotated token never equals the one it replaces
+      .setJti(crypto.randomUUID())
+      .setSubject(userId)
+      .setIssuedAt()
+      .setExpirationTime("7d")
+      .setIssuer("myapp")
+      .setAudience("myapp")
+      .sign(refreshSecret)
+  );
 }
 
 export async function verifyAccessToken(token: string) {

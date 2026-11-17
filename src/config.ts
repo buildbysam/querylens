@@ -75,6 +75,13 @@ export const EnvironmentVariablesSchema = z.object({
   COOKIES_SECRET: secretTokenSchema("COOKIES_SECRET"),
   JWT_ACCESS_SECRET: secretTokenSchema("JWT_ACCESS_SECRET"),
   JWT_REFRESH_SECRET: secretTokenSchema("JWT_REFRESH_SECRET"),
+  ENCRYPTION_KEY: secretTokenSchema("ENCRYPTION_KEY"),
+  COLLECTION_INTERVAL_SECONDS: z.coerce
+    .number()
+    .int({ message: "COLLECTION_INTERVAL_SECONDS must be an integer" })
+    .min(10, { message: "COLLECTION_INTERVAL_SECONDS must be >= 10" })
+    .max(3600, { message: "COLLECTION_INTERVAL_SECONDS must be <= 3600" })
+    .default(60),
   LOG_LEVEL: z
     .enum(LogLevel, {
       message: `LOG_LEVEL must be one of: ${Object.values(LogLevel).join(", ")}`,
@@ -149,16 +156,16 @@ class Config {
     this.config = config;
   }
 
-  get(propertyPath: keyof EnvironmentVariables) {
-    return this.config[propertyPath] as EnvironmentVariables[keyof EnvironmentVariables];
+  get<K extends keyof EnvironmentVariables>(propertyPath: K): EnvironmentVariables[K] {
+    return this.config[propertyPath] as EnvironmentVariables[K];
   }
 
-  getOrThrow(propertyPath: keyof EnvironmentVariables) {
+  getOrThrow<K extends keyof EnvironmentVariables>(propertyPath: K): NonNullable<EnvironmentVariables[K]> {
     const value = this.get(propertyPath);
     if (value === undefined || value === null) {
       throw new Error(`Configuration key "${propertyPath}" is missing`);
     }
-    return value;
+    return value as NonNullable<EnvironmentVariables[K]>;
   }
 
   get isProduction() {

@@ -1,171 +1,75 @@
-import { loginSchema, registerSchema } from "@/modules/auth/types.js";
-import { LoginPage, RegisterPage } from "@/modules/auth/views.js";
+import { loginSchema } from "@/modules/auth/types.js";
+import { LoginPage } from "@/modules/pages/LoginPage.js";
 import { database } from "@/shared/db/client.js";
-import { sessions, users } from "@/shared/db/schema.js";
-import { hashToken } from "@/shared/lib/auth.js";
-import { clearAuthCookies, setAuthCookies } from "@/shared/lib/cookies.js";
-import { createAccessToken, createRefreshToken, verifyRefreshToken } from "@/shared/lib/jwt.js";
+import { users } from "@/shared/db/schema.js";
+import { clearAuthCookies } from "@/shared/lib/cookies.js";
 import { hashPassword, verifyPassword } from "@/shared/lib/password.js";
+import { safeNext } from "@/shared/lib/redirect.js";
+import { endSession, getSessionUser, startSession } from "@/shared/lib/session.js";
 import { rateLimitMiddleware } from "@/shared/middleware/rate-limit.js";
-import { randomUUID } from "crypto";
-import { and, eq, gt } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { Hono } from "hono";
-import { getCookie } from "hono/cookie";
+import { HTTPException } from "hono/http-exception";
 
 export const auth = new Hono();
 
-export async function checkExistingUser(email: string) {
+const INVALID_CREDENTIALS = "Invalid email or password.";
+
+/** sign-in rate limiting, applied to the sign-in POST only. */
+const loginRateLimit = rateLimitMiddleware({
+  windowMs: 30 * 60 * 1000,
+  limit: 15,
+});
+
+async function findUserByEmail(email: string) {
   return (await database.db.select().from(users).where(eq(users.email, email)).limit(1))[0];
 }
 
+/** burns same bcrypt cost for unknown emails so response time doesn't reveal which accounts exist. */
+let dummyHash: Promise<string> | undefined;
+async function burnPasswordCheck(password: string) {
+  dummyHash ??= hashPassword(crypto.randomUUID());
+  await verifyPassword(password, await dummyHash);
+}
+
 auth.get("/login", async (c) => {
-  return c.render(<LoginPage />, { title: "Login" });
-});
-
-auth.get("/register", async (c) => {
-  return c.render(<RegisterPage />, { title: "Register" });
-});
-
-auth.use(
-  rateLimitMiddleware({
-    windowMs: 30 * 60 * 1000,
-    limit: 15,
-  })
-);
-
-auth.post("/auth/register", async (c) => {
-  const body = await c.req.parseBody();
-  const parsed = registerSchema.safeParse(body);
-  if (!parsed.success) {
-    return c.text("Invalid registration details", 400);
+  const next = safeNext(c.req.query("next"));
+  if (await getSessionUser(c)) {
+    return c.redirect(next);
   }
-  const { name, email, password } = parsed.data;
-  const existingUser = await checkExistingUser(email);
-  if (existingUser) {
-    return c.text("Email already registered", 409);
-  }
-  const passwordHash = await hashPassword(password);
-  await database.db.insert(users).values({ name, email, passwordHash });
-  return c.redirect("/login");
+  return c.render(<LoginPage next={next} />);
 });
 
-auth.post("/auth/login", async (c) => {
-  const body = await c.req.parseBody();
+auth.post("/auth/login", loginRateLimit, async (c) => {
+  const body = await c.req.parseBody().catch(() => {
+    throw new HTTPException(400, { message: "Malformed form body." });
+  });
+  const next = safeNext(body.next);
   const parsed = loginSchema.safeParse(body);
 
   if (!parsed.success) {
-    return c.text("Invalid email or password", 400);
+    const email = typeof body.email === "string" ? body.email : undefined;
+    c.status(400);
+    return c.render(
+      <LoginPage next={next} email={email} error={parsed.error.issues[0]?.message ?? INVALID_CREDENTIALS} />
+    );
   }
 
   const { email, password } = parsed.data;
+  const user = await findUserByEmail(email);
+  const valid = user ? await verifyPassword(password, user.passwordHash) : (await burnPasswordCheck(password), false);
 
-  const user = await checkExistingUser(email);
-  if (!user) {
-    return c.text("Invalid email or password", 401);
+  if (!user || !valid) {
+    c.status(401);
+    return c.render(<LoginPage next={next} email={email} error={INVALID_CREDENTIALS} />);
   }
 
-  const validPassword = await verifyPassword(password, user.passwordHash);
-
-  if (!validPassword) {
-    return c.text("Invalid email or password", 401);
-  }
-
-  const sessionId = randomUUID();
-  const accessToken = await createAccessToken(user.id, sessionId);
-  const refreshToken = await createRefreshToken(user.id, sessionId);
-
-  await database.db.insert(sessions).values({
-    id: sessionId,
-    userId: user.id,
-    refreshTokenHash: await hashToken(refreshToken),
-    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-  });
-
-  setAuthCookies(c, accessToken, refreshToken);
-
-  return c.redirect("/dashboard");
+  await startSession(c, user.id);
+  return c.redirect(next);
 });
 
 auth.post("/auth/logout", async (c) => {
-  const token = getCookie(c, "refresh_token");
-
-  if (token) {
-    try {
-      const payload = await verifyRefreshToken(token);
-      if (typeof payload.sessionId === "string") {
-        await database.db.delete(sessions).where(eq(sessions.id, payload.sessionId));
-      }
-    } catch {
-      // Invalid or expired token: still clear cookies.
-    }
-  }
+  await endSession(c);
   clearAuthCookies(c);
   return c.redirect("/login");
 });
-
-auth.get("/auth/refresh", async (c) => {
-  const returnTo = c.req.query("returnTo") || "/dashboard";
-
-  // prevent open redirects
-  const safeReturnTo = returnTo.startsWith("/") && !returnTo.startsWith("//") ? returnTo : "/dashboard";
-
-  const oldToken = getCookie(c, "refresh_token");
-
-  if (!oldToken) {
-    clearAuthCookies(c);
-    return c.redirect("/login");
-  }
-
-  try {
-    const payload = await verifyRefreshToken(oldToken);
-
-    const userId = payload.sub;
-    const sessionId = payload.sessionId;
-
-    if (typeof userId !== "string" || typeof sessionId !== "string") {
-      throw new Error("Invalid refresh token");
-    }
-
-    const oldHash = await hashToken(oldToken);
-    const newRefreshToken = await createRefreshToken(userId, sessionId);
-    const newHash = await hashToken(newRefreshToken);
-
-    const updated = await database.db
-      .update(sessions)
-      .set({
-        refreshTokenHash: newHash,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      })
-      .where(
-        and(
-          eq(sessions.id, sessionId),
-          eq(sessions.userId, userId),
-          eq(sessions.refreshTokenHash, oldHash),
-          gt(sessions.expiresAt, new Date())
-        )
-      )
-      .returning({ id: sessions.id });
-
-    if (!updated.length) {
-      throw new Error("Session expired or token reused");
-    }
-
-    const accessToken = await createAccessToken(userId, sessionId);
-
-    setAuthCookies(c, accessToken, newRefreshToken);
-
-    return c.redirect(safeReturnTo);
-  } catch {
-    clearAuthCookies(c);
-    return c.redirect("/login");
-  }
-});
-
-// protected pages
-// app.get("/dashboard", authMiddleware, (c) => {
-//   const userId = c.get("userId");
-
-//   return c.render(
-//     <DashboardPage userId={userId} />
-//   );
-// });

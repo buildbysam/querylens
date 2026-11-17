@@ -1,0 +1,67 @@
+name: querylens
+
+# Usage:
+#   cp .env.example .env   # then fill in the "Docker Compose" section
+#   docker compose up --build
+#
+# Services:
+#   db      - metadata PostgreSQL
+#   migrate - applies drizzle/ migrations, then exits
+#   app     - QueryLens on http://localhost:${HOST_PORT:-8000}
+
+x-database-url: &database-url postgres://${POSTGRES_USER:-querylens}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@db:5432/${POSTGRES_DB:-querylens}
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-querylens}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-querylens}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    build: .
+    image: querylens-app:latest
+    command: ["node_modules/.bin/drizzle-kit", "migrate"]
+    environment:
+      DATABASE_URL: *database-url
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  app:
+    build: .
+    image: querylens-app:latest
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 8000
+      APP_ORIGIN: ${APP_ORIGIN:-http://localhost:8000}
+      DATABASE_URL: *database-url
+      COOKIES_SECRET: ${COOKIES_SECRET:?set COOKIES_SECRET in .env}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?set JWT_ACCESS_SECRET in .env}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?set JWT_REFRESH_SECRET in .env}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?set ENCRYPTION_KEY in .env}
+      COLLECTION_INTERVAL_SECONDS: ${COLLECTION_INTERVAL_SECONDS:-60}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_FILE_PATH: /app/logs
+    ports:
+      - "${HOST_PORT:-8000}:8000"
+    volumes:
+      - logs:/app/logs
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+volumes:
+  pgdata:
+  logs:
