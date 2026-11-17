@@ -1,4 +1,5 @@
 import { APP_NAME } from "@/shared/lib/app-info.js";
+import type { PageScript } from "@/shared/views/assets.js";
 import { ClientScripts } from "@/shared/views/components/ClientScripts.js";
 import type { Child } from "hono/jsx";
 
@@ -8,11 +9,13 @@ const FONTS_HREF =
 export interface DocumentProps {
   title?: string;
   bodyClass?: string;
+  /** Page entry module from PAGE_SCRIPTS, loaded after the shared app script. */
+  script?: PageScript;
   children?: Child;
 }
 
 /** <html>/<head> shared by AppLayout, AuthLayout and StandaloneLayout: fonts, CSS, Alpine. */
-export function Document({ title, bodyClass, children }: DocumentProps) {
+export function Document({ title, bodyClass, script, children }: DocumentProps) {
   return (
     <html lang="en">
       <head>
@@ -24,7 +27,7 @@ export function Document({ title, bodyClass, children }: DocumentProps) {
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
         <link rel="stylesheet" href={FONTS_HREF} />
         <link rel="stylesheet" href="/css/styles.css" />
-        <ClientScripts />
+        <ClientScripts page={script} />
       </head>
       <body class={bodyClass}>{children}</body>
     </html>

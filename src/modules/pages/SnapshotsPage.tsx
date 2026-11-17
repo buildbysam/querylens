@@ -2,6 +2,7 @@ import type { DatabaseSummary } from "@/modules/databases/types.js";
 import type { SnapshotRecord, ViewInfo } from "@/modules/snapshots/service.js";
 import { cx } from "@/shared/lib/cx.js";
 import { scriptJson } from "@/shared/lib/script-json.js";
+import { alpineData, PAGE_SCRIPTS } from "@/shared/views/assets.js";
 import { Button } from "@/shared/views/components/Button.js";
 import { DatabasePill, type PillDatabase } from "@/shared/views/components/DatabasePill.js";
 import { tdClass, thClass, trClass } from "@/shared/views/components/DataTable.js";
@@ -14,6 +15,7 @@ import { AppLayout } from "@/shared/views/layouts/AppLayout.js";
 import type { Child } from "hono/jsx";
 
 const POLL_MS = 30_000;
+const CONFIG_ID = "snapshots-config";
 
 export interface SnapshotsPageProps {
   user: CurrentUser;
@@ -43,153 +45,15 @@ const cellClasses = {
   nullValue: "text-fg-muted",
 };
 
-/**
- * Snapshot viewer: dynamic columns from the first row's keys, polling every 30s while the
- * tab is visible (in-place update), manual refresh, 1s "Updated Ns ago" ticker.
- */
-const pageScript = /* js */ `
-document.addEventListener("alpine:init", function () {
-  var MONO_KEY = /(^|_)(id|oid|pid|relid|indexrelid|datid|queryid|xid|lsn|ip|addr|port|size|bytes|time|start|query)($|_)|_at$|^backend_|^client_/;
-  var NUMERIC_TEXT = /^-?\\d+(\\.\\d+)?(e[+-]?\\d+)?$/i;
-  var TIMESTAMP_TEXT = /^\\d{4}-\\d{2}-\\d{2}[ T]\\d{2}:\\d{2}/;
-  var INTERVAL_TEXT = /^-?(\\d+ days? )?\\d{2}:\\d{2}:\\d{2}/;
-
-  function titleCase(key) {
-    return key.split("_").filter(Boolean).map(function (w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(" ");
-  }
-
-  function kindOf(key, rows) {
-    var sample;
-    for (var i = 0; i < rows.length && i < 50; i++) {
-      if (rows[i][key] !== null && rows[i][key] !== undefined) { sample = rows[i][key]; break; }
-    }
-    if (typeof sample === "number") return "numeric";
-    if (typeof sample === "string" && NUMERIC_TEXT.test(sample)) return "numeric";
-    if (typeof sample === "boolean" || (sample !== null && typeof sample === "object")) return "mono";
-    if (typeof sample === "string" && (TIMESTAMP_TEXT.test(sample) || INTERVAL_TEXT.test(sample))) return "mono";
-    if (MONO_KEY.test(key)) return "mono";
-    return "text";
-  }
-
-  function relative(ms) {
-    var s = Math.max(0, Math.round(ms / 1000));
-    if (s < 5) return "just now";
-    if (s < 60) return s + "s ago";
-    var m = Math.floor(s / 60);
-    if (m < 60) return m + "m ago";
-    var h = Math.floor(m / 60);
-    if (h < 48) return h + "h ago";
-    return Math.floor(h / 24) + "d ago";
-  }
-
-  Alpine.data("snapshotViewer", function () {
-    var cfg = JSON.parse(document.getElementById("snapshots-config").textContent);
-    return {
-      database: cfg.database,
-      view: cfg.view,
-      snapshot: cfg.snapshot,
-      hasAny: cfg.hasAny,
-      classes: cfg.classes,
-      status: cfg.snapshot ? "ready" : cfg.hasAny ? "unavailable" : "empty",
-      fetching: false,
-      failed: false,
-      now: Date.now(),
-      lastFetchAt: Date.now(),
-      requestSeq: 0,
-
-      init: function () {
-        var self = this;
-        this.$watch("view", function () { self.onViewChange(); });
-        setInterval(function () { self.now = Date.now(); }, 1000);
-        setInterval(function () {
-          if (document.visibilityState === "visible") self.load(false);
-        }, ${POLL_MS});
-        document.addEventListener("visibilitychange", function () {
-          if (document.visibilityState === "visible" && Date.now() - self.lastFetchAt >= ${POLL_MS}) self.load(false);
-        });
-      },
-
-      get columns() {
-        var rows = this.snapshot ? this.snapshot.payload : [];
-        if (!rows.length) return [];
-        return Object.keys(rows[0]).map(function (key) {
-          return { key: key, label: titleCase(key), kind: kindOf(key, rows) };
-        });
-      },
-      get rows() { return this.snapshot ? this.snapshot.payload : []; },
-      get updatedLabel() {
-        return this.snapshot ? relative(this.now - new Date(this.snapshot.capturedAt).getTime()) : "";
-      },
-
-      onViewChange: function () {
-        var url = new URL(window.location.href);
-        url.searchParams.set("database", this.database);
-        url.searchParams.set("view", this.view);
-        history.replaceState(null, "", url.pathname + url.search);
-        this.snapshot = null;
-        this.status = "loading";
-        this.load(true);
-      },
-
-      refresh: function () { this.load(true); },
-
-      load: function (manual) {
-        var self = this;
-        if (this.fetching && !manual) return;
-        var seq = ++this.requestSeq;
-        var view = this.view;
-        this.fetching = true;
-        var url = "/api/snapshots/latest?database=" + encodeURIComponent(this.database) + "&view=" + encodeURIComponent(view);
-        fetch(url, { credentials: "same-origin", headers: { Accept: "application/json" } })
-          .then(function (res) {
-            if (res.status === 401) {
-              window.location.href = "/login?next=" + encodeURIComponent(window.location.pathname + window.location.search);
-              return new Promise(function () {});
-            }
-            if (!res.ok) throw new Error("HTTP " + res.status);
-            return res.json();
-          })
-          .then(function (body) {
-            if (seq !== self.requestSeq || view !== self.view) return;
-            var latest = body.data && body.data[0];
-            self.failed = false;
-            self.lastFetchAt = Date.now();
-            if (latest) {
-              self.snapshot = latest;
-              self.hasAny = true;
-              self.status = "ready";
-            } else {
-              self.snapshot = null;
-              self.status = self.hasAny ? "unavailable" : "empty";
-            }
-          })
-          .catch(function () {
-            if (seq !== self.requestSeq) return;
-            self.failed = true;
-            if (!self.snapshot) self.status = "error";
-          })
-          .finally(function () {
-            if (seq === self.requestSeq) self.fetching = false;
-          });
-      },
-
-      display: function (value) {
-        if (value === null || value === undefined) return "—";
-        if (typeof value === "object") return JSON.stringify(value);
-        return String(value);
-      },
-      cellClass: function (col, value) {
-        var base = col.kind === "numeric" ? this.classes.numeric : col.kind === "mono" ? this.classes.mono : this.classes.text;
-        return value === null || value === undefined ? base + " " + this.classes.nullValue : base;
-      },
-    };
-  });
-});
-`;
-
 function NoDatabases({ user, systemStatus }: Pick<SnapshotsPageProps, "user" | "systemStatus">) {
   return (
-    <AppLayout title="Snapshots" active="snapshots" user={user} systemStatus={systemStatus}>
+    <AppLayout
+      title="Snapshots"
+      active="snapshots"
+      user={user}
+      systemStatus={systemStatus}
+      script={PAGE_SCRIPTS.snapshots}
+    >
       <PageHeader />
       <div class="border-line bg-surface rounded-xl border">
         <EmptyState
@@ -232,11 +96,19 @@ export function SnapshotsPage(props: SnapshotsPageProps) {
     port: d.port,
     ...pillStatus[d.state],
   }));
-  const config = { database: selected.id, view: activeView, snapshot, hasAny: hasAnySnapshots, classes: cellClasses };
+  const config = {
+    database: selected.id,
+    view: activeView,
+    snapshot,
+    hasAny: hasAnySnapshots,
+    pollMs: POLL_MS,
+    classes: cellClasses,
+  };
 
   return (
     <AppLayout
       title="Snapshots"
+      script={PAGE_SCRIPTS.snapshots}
       active="snapshots"
       user={user}
       systemStatus={systemStatus}
@@ -248,10 +120,9 @@ export function SnapshotsPage(props: SnapshotsPageProps) {
         />
       }
     >
-      <script type="application/json" id="snapshots-config" dangerouslySetInnerHTML={{ __html: scriptJson(config) }} />
-      <script dangerouslySetInnerHTML={{ __html: pageScript }} />
+      <script type="application/json" id={CONFIG_ID} dangerouslySetInnerHTML={{ __html: scriptJson(config) }} />
 
-      <div class="flex flex-col gap-6" x-data="snapshotViewer">
+      <div class="flex flex-col gap-6" x-data={alpineData("snapshotViewer", CONFIG_ID)}>
         <PageHeader>
           <div class="flex max-w-full flex-wrap items-center gap-2">
             <SegmentedControl

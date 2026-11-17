@@ -19,7 +19,6 @@ Then open `http://localhost:8000`. For local development without Docker, see
 ```bash
 pnpm dev         # server + Tailwind watcher
 pnpm typecheck   # TypeScript
-pnpm test        # unit tests; add TEST_DATABASE_URL=… for the HTTP integration suite
 ```
 
 ## Documentation
@@ -37,4 +36,4 @@ Start with `01-overview.md` for what QueryLens is, then `03-setup.md` to run it.
 | [`docs/07-web.md`](docs/07-web.md)                     | Pages, layouts and client-side behaviour                               |
 | [`docs/08-auth-security.md`](docs/08-auth-security.md) | Authentication, credential protection and security practices           |
 | [`docs/09-health-errors.md`](docs/09-health-errors.md) | Platform health page and error pages                                   |
-| [`docs/10-dev-guide.md`](docs/10-dev-guide.md)         | Project structure, testing, migrations, deployment and limitations     |
+| [`docs/10-dev-guide.md`](docs/10-dev-guide.md)         | Project structure, migrations, deployment and limitations              |

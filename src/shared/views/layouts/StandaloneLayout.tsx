@@ -1,3 +1,4 @@
+import type { PageScript } from "@/shared/views/assets.js";
 import { Logo } from "@/shared/views/components/Logo.js";
 import { Document } from "@/shared/views/layouts/Document.js";
 import type { Child } from "hono/jsx";
@@ -14,6 +15,8 @@ const glow: Record<GlowTone, string> = {
 export interface StandaloneLayoutProps {
   title?: string;
   glowTone?: GlowTone;
+  /** Page entry module from PAGE_SCRIPTS. */
+  script?: PageScript;
   children?: Child;
 }
 
@@ -21,9 +24,9 @@ export interface StandaloneLayoutProps {
  * error pages: full viewport, centred column max 520px, no sidebar / nav / footer.
  * Wordmark top-left links back to /app/databases.
  */
-export function StandaloneLayout({ title, glowTone = "accent", children }: StandaloneLayoutProps) {
+export function StandaloneLayout({ title, glowTone = "accent", script, children }: StandaloneLayoutProps) {
   return (
-    <Document title={title} bodyClass="min-h-screen">
+    <Document title={title} bodyClass="min-h-screen" script={script}>
       <div class="relative isolate flex min-h-screen flex-col overflow-hidden">
         <div class="px-6 pt-6">
           <Logo size="sm" href="/app/databases" />

@@ -1,4 +1,5 @@
 import { cx } from "@/shared/lib/cx.js";
+import { alpineData, PAGE_SCRIPTS } from "@/shared/views/assets.js";
 import { formatTimestamp } from "@/shared/lib/time.js";
 import { Button } from "@/shared/views/components/Button.js";
 import { CodeBlock } from "@/shared/views/components/CodeBlock.js";
@@ -82,37 +83,6 @@ export interface ErrorPageProps {
   /** 500 / 503: redacted details for the disclosure. Never stack traces, secrets or file paths. */
   details?: Record<string, string | number>;
 }
-
-/** Error-page behaviour: countdowns (429 / 503), back, retry. */
-const pageScript = /* js */ `
-document.addEventListener("alpine:init", function () {
-  Alpine.data("errorPage", function (opts) {
-    return {
-      remaining: opts.countdown || 0,
-      init: function () {
-        var self = this;
-        if (this.remaining <= 0) return;
-        var timer = setInterval(function () {
-          self.remaining = Math.max(0, self.remaining - 1);
-          if (self.remaining === 0) {
-            clearInterval(timer);
-            if (opts.autoRetry && opts.mode === "reload") self.retry();
-          }
-        }, 1000);
-      },
-      back: function () {
-        if (window.history.length > 1) window.history.back();
-        else window.location.href = "/app/databases";
-      },
-      retry: function () {
-        if (this.remaining > 0) return;
-        if (opts.mode === "reload") window.location.reload();
-        else this.back();
-      },
-    };
-  });
-});
-`;
 
 function CopyRequestId({ requestId }: { requestId: string }) {
   return (
@@ -226,12 +196,11 @@ export function ErrorPage({
 }: ErrorPageProps) {
   const content = ERROR_CONTENT[code];
   const countdown = code === 429 ? (retryAfterSeconds ?? 60) : code === 503 ? (retryAfterSeconds ?? 3) : 0;
-  const config = JSON.stringify({ countdown, autoRetry: code === 503, mode: retryMode });
+  const actions = { countdown, autoRetry: code === 503, mode: retryMode };
 
   return (
-    <StandaloneLayout title={`${code} ${content.label}`} glowTone={content.tone}>
-      <script dangerouslySetInnerHTML={{ __html: pageScript }} />
-      <div class="flex flex-col items-center text-center" x-data={`errorPage(${config})`}>
+    <StandaloneLayout title={`${code} ${content.label}`} glowTone={content.tone} script={PAGE_SCRIPTS.error}>
+      <div class="flex flex-col items-center text-center" x-data={alpineData("errorPage", actions)}>
         <p class={cx("text-hero tracking-hero font-mono font-bold", codeColor[content.tone])}>{code}</p>
         <p class="tracking-label text-fg-muted mt-2 text-xs font-semibold uppercase">{content.label}</p>
         <h1 class="tracking-heading text-fg mt-6 text-xl font-semibold">{content.title}</h1>

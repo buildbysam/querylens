@@ -20,7 +20,7 @@ Layouts live in `src/shared/views/layouts/`:
 
 | Layout             | Description                                                                                                                         |
 | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `Document`         | `<html>`/`<head>`: Inter + JetBrains Mono (Google Fonts), `/css/styles.css`, Alpine components and Alpine.js 3.14.9 from jsDelivr.  |
+| `Document`         | `<html>`/`<head>`: Inter + JetBrains Mono (Google Fonts), `/css/styles.css`, `/js/app.js` and the page's entry module.              |
 | `AppLayout`        | 56 px sticky top bar, 240 px sidebar (64 px icon-only at 768–1023 px, drawer below 768 px), content area max 1440 px, toast region. |
 | `AuthLayout`       | Full-viewport centred column with a faint accent glow.                                                                              |
 | `StandaloneLayout` | Error pages: wordmark linking to `/app/databases`, centred 520 px column, status-coloured glow.                                     |
@@ -40,10 +40,8 @@ Pages are rendered on the server. Alpine.js is used only for:
 | 429 countdown and 503 auto-retry                                                       | Error pages             |
 | Avatar menu, mobile navigation drawer, toasts                                          | App shell               |
 
-Shared Alpine components (`passwordReveal`, `copyable`, `dropdown`, `modal`,
-`$store.toasts`) are registered in `shared/views/components/ClientScripts.tsx`.
-Page-specific components are registered by an inline script on the page that
-uses them.
+All client code lives in ES modules under `public/js/` (§7.4); pages contain no
+inline scripts.
 
 ### Snapshot polling
 
@@ -68,7 +66,53 @@ their own HTML and replace a region of the DOM (`#databases-region`,
 `#health-live`), so server rendering stays the single source of markup. The
 health page skips the swap while a modal is open.
 
-## 7.4 Display
+## 7.4 Client Modules
+
+Client behaviour is plain JavaScript served as ES modules from `public/js/`,
+with no build step. Alpine.js 3.14.9 is imported from jsDelivr's ESM build in
+one place, `vendor/alpine.js`.
+
+```text
+public/js/
+├── app.js                       # every page: registers shared components, starts Alpine
+├── vendor/alpine.js             # the only Alpine import (version pin)
+├── lib/                         # framework-free helpers
+│   ├── dom.js                   # focusable elements, visibility, in-place region swaps
+│   ├── http.js                  # getJson / postJson / getHtml with sign-in redirect on 401
+│   └── time.js                  # relativeTime()
+├── components/                  # shared Alpine components (used by shared JSX components)
+│   ├── app-shell.js             # appShell — mobile nav drawer
+│   ├── copyable.js              # copyable — copy to clipboard
+│   ├── dropdown.js              # dropdown — Select, database pill, avatar menu
+│   ├── modal.js                 # modal(id) — dialogs, focus trap
+│   ├── password-reveal.js       # passwordReveal
+│   └── toasts.js                # $store.toasts, toastRegion
+├── features/                    # page behaviour, one folder per feature
+│   ├── auth/login-form.js                     # loginForm
+│   ├── databases/register-database.js         # registerDatabase({ modalId, openOnLoad })
+│   ├── snapshots/snapshot-viewer.js           # snapshotViewer(configId)
+│   ├── snapshots/columns.js                   # column derivation and cell formatting
+│   ├── health/health-page.js                  # healthPage({ refreshSeconds, … })
+│   └── errors/error-page.js                   # errorPage({ countdown, autoRetry, mode })
+└── pages/                       # one entry per page: registers that page's components
+    ├── login.js  databases.js  snapshots.js  health.js  error.js
+```
+
+| Rule          | Detail                                                                                                                                                                                                      |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Loading       | `Document` emits `<script type="module">` for `/js/app.js`, then the page entry named by the layout's `script` prop (`PAGE_SCRIPTS` in `src/shared/views/assets.ts`). Common modules are `modulepreload`ed. |
+| Start-up      | Module scripts run in document order before `DOMContentLoaded`; `app.js` calls `Alpine.start()` on that event, so every component is registered first.                                                      |
+| Factories     | Files in `components/` and `features/` export plain factory functions and never import Alpine; only `app.js` and `pages/*` register them.                                                                   |
+| Server values | Passed as arguments in `x-data`, built with `alpineData("name", options)`; large initial data (snapshots) goes in a `<script type="application/json">` block.                                               |
+| Toasts        | Components call `this.$store.toasts.push(type, message)`; server-queued toasts use the region's `data-initial` attribute.                                                                                   |
+| Production    | `/js/*` is served from `public/js` in development and `dist/public/js` in production; the Docker build and `scripts/build.js` copy it there.                                                                |
+
+To add behaviour to a page: write a factory in `features/<feature>/`, register
+it in that page's entry under `pages/`, and reference it from JSX with
+`x-data={alpineData("name", options)}`. For a new page, add its entry to
+`PAGE_SCRIPTS` and pass it to the layout's `script` prop.
+
+## 7.5 Display
 
 Collected statistics are displayed as a table whose columns come from the first
 row's keys, so any collected view displays without a dedicated page. Headers are
@@ -85,7 +129,7 @@ monospace; other text uses Inter.
 | "View not available on this database" | Other views exist but not this one (e.g. `pg_stat_statements` without the extension). |
 | "Couldn't load snapshots." + Retry    | A fetch failed; any data already shown stays visible.                                 |
 
-## 7.5 Components and Styling
+## 7.6 Components and Styling
 
 Every component is a typed function in `src/shared/views/components/`: `Button`,
 `Input`, `PasswordInput`, `Select`/`Dropdown`, `StatusBadge`, `StatusDot`,
@@ -99,7 +143,7 @@ Tailwind v4 through an `@theme inline` block (for example `bg-surface`,
 Tailwind's default colour palette is removed, so only tokens are available and
 no hex colour appears in JSX.
 
-## 7.6 Accessibility
+## 7.7 Accessibility
 
 - 2 px orange focus ring with 2 px offset on every focusable element (global
   `:focus-visible`).

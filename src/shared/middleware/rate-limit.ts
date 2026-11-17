@@ -24,7 +24,7 @@ export const rateLimitMiddleware = ({ windowMs, limit }: Ratelimit) =>
         1,
         Math.ceil(((info?.resetTime?.getTime() ?? Date.now() + windowMs) - Date.now()) / 1000)
       );
-      // designed 429 page for browsers, JSON for API clients (DESIGN.md §5.5)
+      // designed 429 page for browsers, JSON for API clients
       return errorResponse(c, 429, { retryAfterSeconds });
     },
   });

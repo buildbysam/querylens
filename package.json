@@ -9,8 +9,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "create-admin": "node scripts/create-admin.js",
-    "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --import ./src/shared/lib/test-env.ts --test --test-concurrency=1 \"src/**/*.test.ts\" \"src/**/*.test.tsx\""
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@hono/node-server": "^2.1.3",

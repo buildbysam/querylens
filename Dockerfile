@@ -14,12 +14,13 @@ RUN npm install -g pnpm@11.0.0
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 
-# ---- build: compile Tailwind CSS
+# ---- build: compile Tailwind CSS, copy client modules
 FROM deps AS build
 WORKDIR /app
 COPY . .
 RUN mkdir -p dist/public/css dist/public/images \
-  && node_modules/.bin/tailwindcss -i ./src/global.css -o ./dist/public/css/styles.css --minify
+  && node_modules/.bin/tailwindcss -i ./src/global.css -o ./dist/public/css/styles.css --minify \
+  && cp -r public/js dist/public/js
 
 # ---- runtime
 FROM node:${NODE_VERSION}-bookworm-slim AS runtime

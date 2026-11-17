@@ -1,3 +1,4 @@
+import type { PageScript } from "@/shared/views/assets.js";
 import { Sidebar, type NavKey, type SystemStatus } from "@/shared/views/components/Sidebar.js";
 import { ToastRegion, type ToastMessage } from "@/shared/views/components/Toast.js";
 import { TopBar, type CurrentUser } from "@/shared/views/components/TopBar.js";
@@ -14,16 +15,18 @@ export interface AppLayoutProps {
   pill?: Child;
   /** Toasts to show on load (e.g. after a redirect). */
   toasts?: ToastMessage[];
+  /** Page entry module from PAGE_SCRIPTS. */
+  script?: PageScript;
   children?: Child;
 }
 
 /**
  * app shell (/app/* and /health)
  */
-export function AppLayout({ title, active, user, systemStatus, pill, toasts, children }: AppLayoutProps) {
+export function AppLayout({ title, active, user, systemStatus, pill, toasts, script, children }: AppLayoutProps) {
   return (
-    <Document title={title} bodyClass="min-h-screen">
-      <div x-data="{ navOpen: false }" x-on:keydown="if ($event.key === 'Escape') navOpen = false">
+    <Document title={title} bodyClass="min-h-screen" script={script}>
+      <div x-data="appShell" x-bind="root">
         <a
           href="#main"
           class="focus:bg-elevated focus:text-fg sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-60 focus:rounded-lg focus:px-3 focus:py-2"

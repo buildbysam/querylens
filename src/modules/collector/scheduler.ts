@@ -139,7 +139,7 @@ export function createScheduler({ intervalMs, collect }: SchedulerOptions) {
       tick(new Date());
     },
 
-    /** Resumes a stopped scheduler (DESIGN.md §5.4 "Resume"). Returns false if it was already active. */
+    /** Resumes a stopped scheduler. Returns false if it was already active. */
     resume(): boolean {
       if (state.active) return false;
       state.active = true;

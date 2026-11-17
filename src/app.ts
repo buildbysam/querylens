@@ -29,7 +29,7 @@ export const RATE_LIMIT_SIGNED_IN = 600;
 export function createApp() {
   const app = new Hono<AppEnv>();
 
-  // designed error pages for every failure (DESIGN.md §5.5)
+  // designed error pages for every failure
   app.onError(onError);
   app.notFound(notFound);
 
@@ -37,6 +37,7 @@ export function createApp() {
 
   // static assets: served before CSRF / rate limiting / auth
   app.use("/css/*", staticMiddleware);
+  app.use("/js/*", staticMiddleware);
   app.use("/images/*", staticMiddleware);
   app.get("/favicon.ico", (c) => c.body(null, 204));
 

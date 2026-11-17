@@ -13,10 +13,8 @@ export function ToastRegion({ initial = [] }: { initial?: ToastMessage[] }) {
       class="pointer-events-none fixed right-4 bottom-4 z-60 flex w-full max-w-90 flex-col gap-2"
       role="status"
       aria-live="polite"
-      x-data
-      x-init={
-        initial.length ? `${JSON.stringify(initial)}.forEach(t => $store.toasts.push(t.type, t.message))` : undefined
-      }
+      x-data="toastRegion"
+      data-initial={initial.length ? JSON.stringify(initial) : undefined}
     >
       <template x-for="toast in $store.toasts.items" x-bind:key="toast.id">
         <div

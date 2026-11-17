@@ -1,5 +1,6 @@
 import { APP_NAME, APP_VERSION } from "@/shared/lib/app-info.js";
 import { DEFAULT_AFTER_LOGIN } from "@/shared/lib/redirect.js";
+import { PAGE_SCRIPTS } from "@/shared/views/assets.js";
 import { Button } from "@/shared/views/components/Button.js";
 import { Input } from "@/shared/views/components/Input.js";
 import { Logo } from "@/shared/views/components/Logo.js";
@@ -20,7 +21,7 @@ const ERROR_ID = "login-error";
 /** /login. Plain HTML form POST */
 export function LoginPage({ error, email, next }: LoginPageProps) {
   return (
-    <AuthLayout title="Sign in">
+    <AuthLayout title="Sign in" script={PAGE_SCRIPTS.login}>
       <div class="border-line bg-surface w-full max-w-100 rounded-2xl border p-8">
         <div class="flex justify-center">
           <Logo size="lg" />
@@ -33,9 +34,8 @@ export function LoginPage({ error, email, next }: LoginPageProps) {
           method="post"
           action="/auth/login"
           class="mt-8 flex flex-col gap-4"
-          x-data="{ submitting: false }"
-          x-init="window.addEventListener('pageshow', () => { submitting = false })"
-          x-on:submit="submitting = true"
+          x-data="loginForm"
+          x-on:submit="submit()"
         >
           {next !== DEFAULT_AFTER_LOGIN && <input type="hidden" name="next" value={next} />}
 

@@ -1,5 +1,5 @@
 import { execSync } from "node:child_process";
-import { mkdir } from "node:fs/promises";
+import { cp, mkdir } from "node:fs/promises";
 
 const run = (command) => {
   execSync(command, { stdio: "inherit" });
@@ -15,6 +15,8 @@ async function build() {
     await mkdir("dist/public/images", { recursive: true });
 
     run("tailwindcss -i ./src/global.css -o ./dist/public/css/styles.css --minify");
+
+    await cp("public/js", "dist/public/js", { recursive: true });
 
     // await cp("public/images", "dist/public/images", { recursive: true });
 

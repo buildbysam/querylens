@@ -8,6 +8,7 @@ import type {
 } from "@/modules/health/service.js";
 import { APP_NAME } from "@/shared/lib/app-info.js";
 import { cx } from "@/shared/lib/cx.js";
+import { alpineData, PAGE_SCRIPTS } from "@/shared/views/assets.js";
 import type { InternalEvent } from "@/shared/lib/internal-events.js";
 import { formatClock, formatHoursMinutes, formatRelative, formatTimestamp, secondsUntil } from "@/shared/lib/time.js";
 import { Button } from "@/shared/views/components/Button.js";
@@ -450,104 +451,25 @@ function LiveRegion({ report, history, events, now }: Omit<HealthPageProps, "use
   );
 }
 
-/**
- * page behaviour: 30s countdown + draining bar, in-place
- * refresh of #health-live (skipped while a modal is open), manual refresh with forced
- * re-check, copy status JSON, diagnostic modal fetch, scheduler resume.
- */
-const pageScript = /* js */ `
-document.addEventListener("alpine:init", function () {
-  Alpine.data("healthPage", function () {
-    return {
-      remaining: ${REFRESH_SECONDS},
-      refreshing: false,
-      resuming: false,
-      openModals: 0,
-      diagnostic: "Running diagnostic…",
-      root: {
-        "@open-modal.window": function (e) {
-          this.openModals++;
-          if (e.detail === "${DIAGNOSTIC_MODAL}") this.loadDiagnostic();
-        },
-        "@modal-closed.window": function () { this.openModals = Math.max(0, this.openModals - 1); },
-      },
-      init: function () {
-        var self = this;
-        setInterval(function () {
-          if (self.refreshing) return;
-          self.remaining = Math.max(0, self.remaining - 1);
-          if (self.remaining === 0) {
-            if (document.visibilityState === "visible" && self.openModals === 0) self.refresh(false);
-            else self.remaining = ${REFRESH_SECONDS};
-          }
-        }, 1000);
-      },
-      get barWidth() { return "width: " + (this.remaining / ${REFRESH_SECONDS}) * 100 + "%"; },
-      refresh: function (manual) {
-        var self = this;
-        if (this.refreshing) return;
-        this.refreshing = true;
-        fetch("/health" + (manual ? "?check=1" : ""), { credentials: "same-origin", headers: { Accept: "text/html" } })
-          .then(function (res) {
-            if (res.redirected && res.url.indexOf("/login") !== -1) { window.location.href = res.url; return null; }
-            return res.text();
-          })
-          .then(function (html) {
-            if (!html) return;
-            var next = new DOMParser().parseFromString(html, "text/html").getElementById("health-live");
-            var current = document.getElementById("health-live");
-            if (next && current && (manual || self.openModals === 0)) current.replaceWith(next);
-          })
-          .catch(function () {
-            Alpine.store("toasts").push("danger", "Couldn't refresh platform health.");
-          })
-          .finally(function () {
-            self.refreshing = false;
-            self.remaining = ${REFRESH_SECONDS};
-          });
-      },
-      fetchJson: function (check) {
-        return fetch("/health" + (check ? "?check=1" : ""), { credentials: "same-origin", headers: { Accept: "application/json" } })
-          .then(function (res) { return res.json(); });
-      },
-      copyStatus: function () {
-        this.fetchJson(false)
-          .then(function (json) { return navigator.clipboard.writeText(JSON.stringify(json, null, 2)); })
-          .then(function () { Alpine.store("toasts").push("success", "Status JSON copied"); })
-          .catch(function () { Alpine.store("toasts").push("danger", "Couldn't copy status JSON."); });
-      },
-      loadDiagnostic: function () {
-        var self = this;
-        this.diagnostic = "Running diagnostic…";
-        this.fetchJson(true)
-          .then(function (json) { self.diagnostic = JSON.stringify(json, null, 2); })
-          .catch(function () { self.diagnostic = "Diagnostic failed. Check the server logs."; });
-      },
-      resume: function () {
-        var self = this;
-        if (this.resuming) return;
-        this.resuming = true;
-        fetch("/health/scheduler/resume", { method: "POST", credentials: "same-origin", headers: { Accept: "application/json" } })
-          .then(function (res) { return res.json().then(function (body) { return { ok: res.ok, body: body }; }); })
-          .then(function (r) {
-            self.$dispatch("close-modal", "${RESUME_MODAL}");
-            Alpine.store("toasts").push(r.ok ? "success" : "danger", r.body.message || (r.ok ? "Scheduler resumed" : "Couldn't resume the scheduler."));
-            self.refresh(true);
-          })
-          .catch(function () { Alpine.store("toasts").push("danger", "Couldn't resume the scheduler."); })
-          .finally(function () { self.resuming = false; });
-      },
-    };
-  });
-});
-`;
-
 /** /health, internal platform health. */
 export function HealthPage({ user, systemStatus, report, history, events, now }: HealthPageProps) {
   return (
-    <AppLayout title="Platform Health" active="health" user={user} systemStatus={systemStatus}>
-      <script dangerouslySetInnerHTML={{ __html: pageScript }} />
-      <div class="flex flex-col gap-6" x-data="healthPage" x-bind="root">
+    <AppLayout
+      title="Platform Health"
+      active="health"
+      user={user}
+      systemStatus={systemStatus}
+      script={PAGE_SCRIPTS.health}
+    >
+      <div
+        class="flex flex-col gap-6"
+        x-data={alpineData("healthPage", {
+          refreshSeconds: REFRESH_SECONDS,
+          diagnosticModal: DIAGNOSTIC_MODAL,
+          resumeModal: RESUME_MODAL,
+        })}
+        x-bind="root"
+      >
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div class="max-w-2xl">
             <h1 class="tracking-heading text-fg text-xl font-semibold">Platform Health</h1>
