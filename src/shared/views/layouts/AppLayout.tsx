@@ -29,7 +29,7 @@ export function AppLayout({ title, active, user, systemStatus, pill, toasts, scr
       <div x-data="appShell" x-bind="root">
         <a
           href="#main"
-          class="focus:bg-elevated focus:text-fg sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-60 focus:rounded-lg focus:px-3 focus:py-2"
+          class="focus:bg-elevated focus:text-text-primary sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-60 focus:rounded-lg focus:px-3 focus:py-2"
         >
           Skip to content
         </a>

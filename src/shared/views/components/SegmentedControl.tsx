@@ -21,11 +21,11 @@ export interface SegmentedControlProps {
   class?: string;
 }
 
-const track = "inline-flex h-8 items-center rounded-lg bg-subtle p-0.5";
+const track = "inline-flex h-8 items-center rounded-lg border border-border-subtle bg-sidebar p-0.5";
 const segmentBase =
   "inline-flex h-7 items-center rounded-md px-3 text-sm font-medium whitespace-nowrap transition-colors duration-150 ease-standard";
-const inactive = "text-fg-secondary hover:text-fg";
-const activeCls = "bg-elevated text-accent";
+const inactive = "text-text-secondary hover:text-text-primary";
+const activeCls = "bg-elevated text-brand-400";
 
 export function SegmentedControl({ label, segments, active, model, class: className }: SegmentedControlProps) {
   return (

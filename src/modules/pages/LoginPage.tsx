@@ -22,13 +22,13 @@ const ERROR_ID = "login-error";
 export function LoginPage({ error, email, next }: LoginPageProps) {
   return (
     <AuthLayout title="Sign in" script={PAGE_SCRIPTS.login}>
-      <div class="border-line bg-surface w-full max-w-100 rounded-2xl border p-8">
+      <div class="border-border-subtle bg-surface w-full max-w-100 rounded-xl border p-8">
         <div class="flex justify-center">
           <Logo size="lg" />
         </div>
 
-        <h1 class="tracking-heading text-fg mt-6 text-center text-xl font-semibold">Sign in to {APP_NAME}</h1>
-        <p class="text-fg-secondary mt-2 text-center text-base">Monitor your PostgreSQL databases.</p>
+        <h1 class="tracking-heading text-text-primary mt-6 text-center text-xl font-semibold">Sign in to {APP_NAME}</h1>
+        <p class="text-text-secondary mt-2 text-center text-base">Monitor your PostgreSQL databases.</p>
 
         <form
           method="post"
@@ -74,7 +74,7 @@ export function LoginPage({ error, email, next }: LoginPageProps) {
             <a
               href="/login"
               title="Not available in MVP"
-              class="text-accent ease-standard hover:text-accent-hover rounded-md text-sm transition-colors duration-150"
+              class="text-brand-400 ease-standard hover:text-brand-100 rounded-md text-sm transition-colors duration-150"
             >
               Forgot password?
             </a>
@@ -82,7 +82,7 @@ export function LoginPage({ error, email, next }: LoginPageProps) {
         </form>
       </div>
 
-      <p class="text-fg-muted mt-6 text-center text-xs">
+      <p class="text-text-muted mt-6 text-center text-xs">
         {APP_NAME} v{APP_VERSION} · PostgreSQL Observability
       </p>
     </AuthLayout>

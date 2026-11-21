@@ -15,7 +15,6 @@ import { Button } from "@/shared/views/components/Button.js";
 import { Card } from "@/shared/views/components/Card.js";
 import { CodeBlock } from "@/shared/views/components/CodeBlock.js";
 import { Table, TableEmptyRow, Td, Th, Tr } from "@/shared/views/components/DataTable.js";
-import { Icon, type IconName } from "@/shared/views/components/Icon.js";
 import { MetricRow, type Metric } from "@/shared/views/components/MetricRow.js";
 import { Modal, modalTrigger } from "@/shared/views/components/Modal.js";
 import type { SystemStatus } from "@/shared/views/components/Sidebar.js";
@@ -26,6 +25,7 @@ import { TimelineStrip, type TimelineSample } from "@/shared/views/components/Ti
 import type { CurrentUser } from "@/shared/views/components/TopBar.js";
 import { AppLayout } from "@/shared/views/layouts/AppLayout.js";
 import type { Child } from "hono/jsx";
+import { Icon, type IconName } from "@/shared/views/components/Icon.js";
 
 const REFRESH_SECONDS = 30;
 const DIAGNOSTIC_MODAL = "health-diagnostic";
@@ -108,13 +108,13 @@ function ServiceCard({ icon, name, status, label, metrics, message, meta, sample
   return (
     <Card as="article" accent={levelAccent[status]} class="flex flex-col gap-4">
       <div class="flex items-center gap-2">
-        <Icon name={icon} size={20} class="text-fg-muted" />
-        <h2 class="text-md text-fg truncate font-semibold">{name}</h2>
+        <Icon name={icon} size={20} class="text-text-muted" />
+        <h2 class="text-md text-text-primary truncate font-semibold">{name}</h2>
         <StatusBadge variant={levelVariant[status]} label={label} live class="ml-auto" />
       </div>
       <MetricRow metrics={metrics} />
       {message}
-      <p class="text-fg-muted text-xs">{meta}</p>
+      <p class="text-text-muted text-xs">{meta}</p>
       <TimelineStrip samples={toTimeline(samples)} label={name} class="mt-auto" />
     </Card>
   );
@@ -294,15 +294,15 @@ function EventsCard({ events }: { events: InternalEvent[] }) {
       >
         {events.length === 0 ? (
           <TableEmptyRow colSpan={5}>
-            <p class="text-fg-secondary flex items-center justify-center gap-2 px-6 py-8 text-sm">
-              <Icon name="check-circle" class="text-fg-muted" />
+            <p class="text-text-secondary flex items-center justify-center gap-2 px-6 py-8 text-sm">
+              <Icon name="check-circle" size={16} class="text-text-muted" />
               No internal events in the last hour. All quiet.
             </p>
           </TableEmptyRow>
         ) : (
           events.map((e) => (
             <Tr>
-              <Td density="compact" class="text-fg-muted font-mono text-xs">
+              <Td density="compact" class="text-text-muted font-mono text-xs">
                 {formatClock(e.at)}
               </Td>
               <Td density="compact">
@@ -342,16 +342,16 @@ function LastErrorModal({ error }: { error: CollectorHealth["lastError"] }) {
         <div class="flex flex-col gap-4">
           <dl class="flex flex-col gap-2 text-sm">
             <div class="flex gap-4">
-              <dt class="text-fg-muted w-24 shrink-0">Timestamp</dt>
-              <dd class="text-fg font-mono">{formatTimestamp(error.at)} UTC</dd>
+              <dt class="text-text-muted w-24 shrink-0">Timestamp</dt>
+              <dd class="text-text-primary font-mono">{formatTimestamp(error.at)} UTC</dd>
             </div>
             <div class="flex gap-4">
-              <dt class="text-fg-muted w-24 shrink-0">Target</dt>
-              <dd class="text-fg">{error.target}</dd>
+              <dt class="text-text-muted w-24 shrink-0">Target</dt>
+              <dd class="text-text-primary">{error.target}</dd>
             </div>
             <div class="flex gap-4">
-              <dt class="text-fg-muted w-24 shrink-0">Message</dt>
-              <dd class="text-fg">{error.message}</dd>
+              <dt class="text-text-muted w-24 shrink-0">Message</dt>
+              <dd class="text-text-primary">{error.message}</dd>
             </div>
           </dl>
           <CodeBlock
@@ -361,7 +361,7 @@ function LastErrorModal({ error }: { error: CollectorHealth["lastError"] }) {
           />
         </div>
       ) : (
-        <p class="text-fg-secondary text-base">No collector errors recorded since start-up.</p>
+        <p class="text-text-secondary text-base">No collector errors recorded since start-up.</p>
       )}
     </Modal>
   );
@@ -383,7 +383,7 @@ function ResumeModal() {
         </>
       }
     >
-      <p class="text-fg-secondary text-base">Collection will resume on the next scheduled tick.</p>
+      <p class="text-text-secondary text-base">Collection will resume on the next scheduled tick.</p>
     </Modal>
   );
 }
@@ -396,7 +396,7 @@ function DiagnosticModal() {
       size="lg"
       footer={
         <>
-          <span class="text-fg-muted text-xs">Secrets are redacted as ••••</span>
+          <span class="text-text-muted text-xs">Secrets are redacted as ••••</span>
           <Button variant="ghost" x-on:click="close()">
             Close
           </Button>
@@ -435,7 +435,7 @@ function LiveRegion({ report, history, events, now }: Omit<HealthPageProps, "use
 
       <EventsCard events={events} />
 
-      <div class="text-fg-muted flex flex-wrap items-center justify-between gap-4 text-sm">
+      <div class="text-text-muted flex flex-wrap items-center justify-between gap-4 text-sm">
         <p>
           {APP_NAME} v{report.app.version} · Node <Mono>{report.app.node.replace(/^v/, "")}</Mono> · Uptime{" "}
           <Mono>{formatHoursMinutes(report.app.uptimeSeconds)}</Mono> · Environment: {report.app.environment}
@@ -472,8 +472,8 @@ export function HealthPage({ user, systemStatus, report, history, events, now }:
       >
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div class="max-w-2xl">
-            <h1 class="tracking-heading text-fg text-xl font-semibold">Platform Health</h1>
-            <p class="text-fg-muted mt-1 text-sm">
+            <h1 class="tracking-heading text-text-primary text-xl font-semibold">Platform Health</h1>
+            <p class="text-text-muted mt-1 text-sm">
               Internal status of QueryLens services — metadata database, collector, and scheduler.
             </p>
           </div>
@@ -486,7 +486,7 @@ export function HealthPage({ user, systemStatus, report, history, events, now }:
                 Copy status JSON
               </Button>
             </div>
-            <div class="text-fg-muted flex items-center gap-2 text-xs">
+            <div class="text-text-muted flex items-center gap-2 text-xs">
               <StatusDot variant="success" pulse />
               <span>
                 auto-refresh in{" "}
@@ -496,9 +496,9 @@ export function HealthPage({ user, systemStatus, report, history, events, now }:
                 s
               </span>
             </div>
-            <div class="bg-subtle h-0.5 w-30 overflow-hidden rounded-full" aria-hidden="true">
+            <div class="bg-elevated h-0.5 w-30 overflow-hidden rounded-full" aria-hidden="true">
               <div
-                class="bg-accent h-full transition-all duration-1000 ease-linear"
+                class="bg-brand-600 h-full transition-all duration-1000 ease-linear"
                 style="width: 100%"
                 x-bind:style="barWidth"
               />

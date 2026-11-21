@@ -4,9 +4,9 @@ import type { Child } from "hono/jsx";
 export type Density = "default" | "compact";
 
 export const thClass =
-  "sticky top-0 z-10 h-10 bg-subtle px-4 align-middle text-xs font-semibold uppercase tracking-label whitespace-nowrap text-fg-muted";
+  "sticky top-0 z-10 h-10 border-b border-border bg-table-header px-4 align-middle text-xs font-semibold uppercase tracking-label whitespace-nowrap text-text-secondary";
 export const trClass =
-  "border-b border-line transition-colors duration-150 ease-standard last:border-b-0 hover:bg-elevated";
+  "border-b border-border-subtle transition-colors duration-150 ease-standard last:border-b-0 hover:bg-hover";
 
 export function tdClass(opts: { mono?: boolean; numeric?: boolean; density?: Density } = {}) {
   return cx(
@@ -14,7 +14,7 @@ export function tdClass(opts: { mono?: boolean; numeric?: boolean; density?: Den
     opts.density === "compact" ? "h-9" : "h-10",
     opts.mono || opts.numeric ? "font-mono text-sm" : "text-sm",
     opts.numeric ? "text-right tabular-nums" : "text-left",
-    "text-fg-secondary"
+    "text-text-primary"
   );
 }
 

@@ -18,7 +18,7 @@ export function ToastRegion({ initial = [] }: { initial?: ToastMessage[] }) {
     >
       <template x-for="toast in $store.toasts.items" x-bind:key="toast.id">
         <div
-          class="border-line bg-elevated text-fg-secondary shadow-overlay pointer-events-auto flex items-start gap-3 rounded-lg border border-l-3 px-4 py-3 text-sm"
+          class="border-border bg-elevated text-text-secondary shadow-overlay pointer-events-auto flex items-start gap-3 rounded-lg border border-l-3 px-4 py-3 text-sm"
           x-bind:class="{
             'border-l-success': toast.type === 'success',
             'border-l-warning': toast.type === 'warning',
@@ -32,7 +32,7 @@ export function ToastRegion({ initial = [] }: { initial?: ToastMessage[] }) {
           <p class="flex-1" x-text="toast.message" />
           <button
             type="button"
-            class="text-fg-muted ease-standard hover:text-fg -my-1 -mr-2 flex size-6 items-center justify-center rounded-md transition-colors duration-150"
+            class="text-text-muted ease-standard hover:text-text-primary -my-1 -mr-2 flex size-6 items-center justify-center rounded-md transition-colors duration-150"
             aria-label="Dismiss notification"
             x-on:click="$store.toasts.dismiss(toast.id)"
           >

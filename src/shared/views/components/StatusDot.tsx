@@ -6,7 +6,7 @@ const dotColor: Record<StatusVariant, string> = {
   warning: "bg-warning",
   danger: "bg-danger",
   info: "bg-info",
-  muted: "bg-fg-muted",
+  muted: "bg-inactive",
 };
 
 export interface StatusDotProps {

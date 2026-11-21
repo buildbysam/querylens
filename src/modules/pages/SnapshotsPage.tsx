@@ -42,7 +42,7 @@ const cellClasses = {
   text: cx(tdClass(), "max-w-md truncate"),
   mono: cx(tdClass({ mono: true }), "max-w-md truncate"),
   numeric: tdClass({ numeric: true }),
-  nullValue: "text-fg-muted",
+  nullValue: "text-text-muted",
 };
 
 function NoDatabases({ user, systemStatus }: Pick<SnapshotsPageProps, "user" | "systemStatus">) {
@@ -55,7 +55,7 @@ function NoDatabases({ user, systemStatus }: Pick<SnapshotsPageProps, "user" | "
       script={PAGE_SCRIPTS.snapshots}
     >
       <PageHeader />
-      <div class="border-line bg-surface rounded-xl border">
+      <div class="border-border-subtle bg-surface rounded-xl border">
         <EmptyState
           icon="database"
           title="No databases registered yet"
@@ -75,8 +75,8 @@ function PageHeader({ children }: { children?: Child }) {
   return (
     <div class="flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h1 class="tracking-heading text-fg text-xl font-semibold">Snapshots</h1>
-        <p class="text-fg-muted mt-1 text-sm">Collected statistics — read-only</p>
+        <h1 class="tracking-heading text-text-primary text-xl font-semibold">Snapshots</h1>
+        <p class="text-text-muted mt-1 text-sm">Collected statistics — read-only</p>
       </div>
       {children}
     </div>
@@ -148,27 +148,30 @@ export function SnapshotsPage(props: SnapshotsPageProps) {
           x-show="failed"
           x-cloak
           role="alert"
-          class="border-line border-l-danger bg-surface flex items-center justify-between gap-4 rounded-xl border border-l-2 px-6 py-4"
+          class="border-border-subtle border-l-danger bg-surface flex items-center justify-between gap-4 rounded-xl border border-l-2 px-6 py-4"
         >
-          <p class="text-fg text-sm">Couldn't load snapshots.</p>
+          <p class="text-text-primary text-sm">Couldn't load snapshots.</p>
           <Button variant="ghost" size="sm" icon="refresh-cw" x-on:click="refresh()">
             Retry
           </Button>
         </div>
 
-        <section class="border-line bg-surface overflow-hidden rounded-xl border" aria-labelledby="snapshot-title">
-          <div class="border-line flex items-center justify-between gap-4 border-b px-6 py-4">
-            <h2 id="snapshot-title" class="text-md text-fg truncate font-mono font-semibold" x-text="view">
+        <section
+          class="border-border-subtle bg-surface overflow-hidden rounded-xl border"
+          aria-labelledby="snapshot-title"
+        >
+          <div class="border-border-subtle flex items-center justify-between gap-4 border-b px-6 py-4">
+            <h2 id="snapshot-title" class="text-md text-text-primary truncate font-mono font-semibold" x-text="view">
               {activeView}
             </h2>
-            <p class="text-fg-muted shrink-0 text-xs" x-show="snapshot">
+            <p class="text-text-muted shrink-0 text-xs" x-show="snapshot">
               Updated <span x-text="updatedLabel" />
             </p>
           </div>
 
           <template x-if="status === 'ready'">
             <div>
-              <p class="border-line text-fg-muted border-b px-6 py-3 text-xs">
+              <p class="border-border-subtle text-text-muted border-b px-6 py-3 text-xs">
                 Showing the latest snapshot · <span class="font-mono" x-text="snapshot.rowCount" /> rows
               </p>
               <template x-if="rows.length > 0">

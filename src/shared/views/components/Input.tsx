@@ -5,13 +5,13 @@ import type { Child } from "hono/jsx";
  * Error state follows aria-invalid, so server- and Alpine-driven errors share one style.
  */
 export function inputClass() {
-  return "h-10 w-full rounded-lg border border-line bg-subtle px-3 text-base text-fg placeholder:text-fg-muted transition-colors duration-150 ease-standard hover:border-line-strong focus:border-line-strong disabled:cursor-not-allowed disabled:opacity-40 aria-invalid:border-danger aria-invalid:hover:border-danger aria-invalid:focus:border-danger";
+  return "h-10 w-full rounded-lg border border-border bg-input px-3 text-base text-text-primary placeholder:text-text-muted transition-colors duration-150 ease-standard hover:border-border-hover focus:border-border-focus disabled:cursor-not-allowed disabled:opacity-40 aria-invalid:border-danger aria-invalid:hover:border-danger aria-invalid:focus:border-danger";
 }
 
 /** 12px uppercase muted label, 4px above the control. */
 export function FieldLabel({ for: htmlFor, children }: { for: string; children: Child }) {
   return (
-    <label for={htmlFor} class="tracking-label text-fg-muted text-xs font-semibold uppercase">
+    <label for={htmlFor} class="tracking-label text-text-secondary text-xs font-semibold uppercase">
       {children}
     </label>
   );

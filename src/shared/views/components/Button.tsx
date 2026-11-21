@@ -15,18 +15,18 @@ const sizes: Record<ButtonSize, string> = {
 };
 
 const variants: Record<ButtonVariant, string> = {
-  primary: "bg-accent text-canvas enabled:hover:bg-accent-hover",
-  secondary: "border border-line text-fg-secondary enabled:hover:border-line-strong enabled:hover:bg-elevated",
-  danger: "border border-danger text-danger enabled:hover:bg-danger/12",
-  ghost: "text-fg-secondary enabled:hover:bg-elevated enabled:hover:text-fg",
+  primary: "bg-brand-600 text-text-inverse enabled:hover:bg-brand-700",
+  secondary:
+    "border border-border bg-surface text-text-primary enabled:hover:border-border-hover enabled:hover:bg-hover",
+  danger: "border border-danger/60 text-danger enabled:hover:border-danger enabled:hover:bg-danger-bg/40",
+  ghost: "text-text-secondary enabled:hover:bg-hover enabled:hover:text-text-primary",
 };
 
-/** Anchors have no :enabled state, so they get plain hover styles. */
 const linkVariants: Record<ButtonVariant, string> = {
-  primary: "bg-accent text-canvas hover:bg-accent-hover",
-  secondary: "border border-line text-fg-secondary hover:border-line-strong hover:bg-elevated",
-  danger: "border border-danger text-danger hover:bg-danger/12",
-  ghost: "text-fg-secondary hover:bg-elevated hover:text-fg",
+  primary: "bg-brand-600 text-text-inverse hover:bg-brand-700",
+  secondary: "border border-border bg-surface text-text-primary hover:border-border-hover hover:bg-hover",
+  danger: "border border-danger/60 text-danger hover:border-danger hover:bg-danger-bg/40",
+  ghost: "text-text-secondary hover:bg-hover hover:text-text-primary",
 };
 
 export function buttonClass(variant: ButtonVariant = "secondary", size: ButtonSize = "md", isLink = false) {
@@ -48,9 +48,9 @@ export function Spinner({ class: className }: { class?: string }) {
 export interface ButtonProps {
   variant?: ButtonVariant;
   size?: ButtonSize;
-  /** Leading Lucide icon. */
+  /** leading icon (name of a file in public/images/icons). */
   icon?: IconName;
-  /** Trailing Lucide icon (e.g. "View →"). */
+  /** trailing icon (e.g. "arrow-right"). */
   trailingIcon?: IconName;
   /** Renders an <a> instead of a <button>. */
   href?: string;
@@ -59,9 +59,7 @@ export interface ButtonProps {
   /** Server-side loading state: ring replaces the leading icon. */
   loading?: boolean;
   /**
-   * Alpine expression for client-side loading. While truthy the ring replaces the
-   * leading icon and the button is disabled; the label stays (§4.1).
-   */
+   * alpine expression for client-side loading */
   loadingWhen?: string;
   class?: string;
   children?: Child;
@@ -92,21 +90,21 @@ export function Button(props: ButtonProps) {
       </span>
       {icon && (
         <span x-show={`!(${loadingWhen})`} class="inline-flex">
-          <Icon name={icon} />
+          <Icon name={icon} size={16} />
         </span>
       )}
     </>
   ) : loading ? (
     <Spinner />
   ) : icon ? (
-    <Icon name={icon} />
+    <Icon name={icon} size={16} />
   ) : null;
 
   const inner = (
     <>
       {leading}
       {children}
-      {trailingIcon && <Icon name={trailingIcon} />}
+      {trailingIcon && <Icon name={trailingIcon} size={16} />}
     </>
   );
 

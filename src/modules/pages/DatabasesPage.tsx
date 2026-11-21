@@ -3,7 +3,6 @@ import { formatDuration, formatRelative } from "@/shared/lib/time.js";
 import { alpineData, PAGE_SCRIPTS } from "@/shared/views/assets.js";
 import { Button } from "@/shared/views/components/Button.js";
 import { EmptyState } from "@/shared/views/components/EmptyState.js";
-import { Icon } from "@/shared/views/components/Icon.js";
 import { Input } from "@/shared/views/components/Input.js";
 import { MetricRow } from "@/shared/views/components/MetricRow.js";
 import { Modal, modalTrigger } from "@/shared/views/components/Modal.js";
@@ -12,6 +11,7 @@ import type { SystemStatus } from "@/shared/views/components/Sidebar.js";
 import { StatusDot } from "@/shared/views/components/StatusDot.js";
 import type { CurrentUser } from "@/shared/views/components/TopBar.js";
 import { AppLayout } from "@/shared/views/layouts/AppLayout.js";
+import { Icon } from "@/shared/views/components/Icon.js";
 
 const MODAL_ID = "register-database";
 const FORM_ID = "register-database-form";
@@ -37,18 +37,18 @@ function DatabaseCard({ db, now }: { db: DatabaseSummary; now: Date }) {
   const endpoint = `postgres://${db.host}:${db.port}`;
 
   return (
-    <article class="border-line bg-surface ease-standard hover:border-accent-border relative flex cursor-pointer flex-col gap-4 rounded-xl border p-6 transition-colors duration-150">
+    <article class="border-border-subtle bg-surface ease-standard hover:border-brand-700 relative flex cursor-pointer flex-col gap-4 rounded-xl border p-6 transition-colors duration-150">
       <div class="flex items-start justify-between gap-4">
-        <h2 class="text-md text-fg min-w-0 truncate font-semibold">
+        <h2 class="text-md text-text-primary min-w-0 truncate font-semibold">
           {/* stretched link: the whole card navigates to the snapshots view */}
           <a href={href} class="rounded-md after:absolute after:inset-0">
             {db.name}
           </a>
         </h2>
-        <StatusDot variant={state.variant} label={state.label} class="text-fg-secondary shrink-0" />
+        <StatusDot variant={state.variant} label={state.label} class="text-text-secondary shrink-0" />
       </div>
 
-      <p class="text-fg-muted -mt-2 truncate font-mono text-sm" title={`${endpoint}/${db.databaseName}`}>
+      <p class="text-text-muted -mt-2 truncate font-mono text-sm" title={`${endpoint}/${db.databaseName}`}>
         {endpoint}
       </p>
 
@@ -61,16 +61,16 @@ function DatabaseCard({ db, now }: { db: DatabaseSummary; now: Date }) {
       />
 
       <div class="mt-auto flex items-center justify-between gap-4">
-        <p class="text-fg-muted text-xs">
+        <p class="text-text-muted text-xs">
           {db.lastCollectedAt ? `Last collected ${formatRelative(db.lastCollectedAt, now)}` : "Not collected yet"}
         </p>
         <a
           href={href}
           tabindex={-1}
-          class="text-accent ease-standard hover:text-accent-hover relative z-10 inline-flex items-center gap-2 rounded-md text-sm font-medium transition-colors duration-150"
+          class="text-brand-400 ease-standard hover:text-brand-100 relative z-10 inline-flex items-center gap-2 rounded-md text-sm font-medium transition-colors duration-150"
         >
           View
-          <Icon name="arrow-right" />
+          <Icon name="arrow-right" size={16} />
         </a>
       </div>
     </article>
@@ -82,7 +82,7 @@ function AddTile() {
     <button
       type="button"
       {...modalTrigger(MODAL_ID)}
-      class="border-line text-fg-muted ease-standard hover:border-accent hover:text-accent flex min-h-48 flex-col items-center justify-center gap-2 rounded-xl border border-dashed transition-colors duration-150"
+      class="border-border text-text-muted ease-standard hover:border-brand-600 hover:text-brand-400 flex min-h-48 flex-col items-center justify-center gap-2 rounded-xl border border-dashed transition-colors duration-150"
     >
       <Icon name="plus" size={20} />
       <span class="text-base font-medium">Register Database</span>
@@ -174,7 +174,7 @@ function RegisterModal({ openOnLoad }: { openOnLoad: boolean }) {
         />
 
         <p class="min-h-5 text-sm" role="status" aria-live="polite">
-          <span x-show="test.state === 'testing'" x-cloak class="text-fg-muted">
+          <span x-show="test.state === 'testing'" x-cloak class="text-text-muted">
             Testing connection…
           </span>
           <span x-show="test.state === 'ok'" x-cloak class="text-success">
@@ -200,8 +200,8 @@ export function DatabasesPage({ user, systemStatus, databases, now, openRegister
     >
       <div class="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 class="tracking-heading text-fg text-xl font-semibold">Databases</h1>
-          <p id="databases-count" class="text-fg-muted mt-1 text-sm">
+          <h1 class="tracking-heading text-text-primary text-xl font-semibold">Databases</h1>
+          <p id="databases-count" class="text-text-muted mt-1 text-sm">
             {count} registered {count === 1 ? "instance" : "instances"}
           </p>
         </div>
@@ -212,7 +212,7 @@ export function DatabasesPage({ user, systemStatus, databases, now, openRegister
 
       <section id="databases-region" aria-label="Registered databases">
         {count === 0 ? (
-          <div class="border-line bg-surface rounded-xl border">
+          <div class="border-border-subtle bg-surface rounded-xl border">
             <EmptyState
               icon="database"
               title="No databases registered yet"

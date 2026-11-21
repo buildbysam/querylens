@@ -10,12 +10,18 @@ export function errorPage({ countdown = 0, autoRetry = false, mode }) {
     remaining: countdown,
 
     init() {
-      if (this.remaining <= 0) return;
+      if (this.remaining <= 0) {
+        return;
+      }
       const timer = setInterval(() => {
         this.remaining = Math.max(0, this.remaining - 1);
-        if (this.remaining > 0) return;
+        if (this.remaining > 0) {
+          return;
+        }
         clearInterval(timer);
-        if (autoRetry && mode === "reload") this.retry();
+        if (autoRetry && mode === "reload") {
+          this.retry();
+        }
       }, 1000);
     },
 

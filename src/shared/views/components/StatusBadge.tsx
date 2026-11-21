@@ -3,11 +3,11 @@ import { cx } from "@/shared/lib/cx.js";
 export type StatusVariant = "success" | "warning" | "danger" | "info" | "muted";
 
 const variants: Record<StatusVariant, string> = {
-  success: "bg-success/12 text-success",
-  warning: "bg-warning/12 text-warning",
-  danger: "bg-danger/12 text-danger",
-  info: "bg-info/12 text-info",
-  muted: "bg-fg-muted/12 text-fg-muted",
+  success: "bg-success-bg/20 text-success",
+  warning: "bg-warning-bg/20 text-warning",
+  danger: "bg-danger-bg/20 text-danger",
+  info: "bg-info-bg/20 text-info",
+  muted: "bg-elevated text-inactive",
 };
 
 export interface StatusBadgeProps {

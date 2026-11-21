@@ -29,12 +29,22 @@ export function Card(props: CardProps) {
 
   return (
     <Tag
-      class={cx("border-line bg-surface rounded-xl border", padded && "p-6", accent && accents[accent], className)}
+      class={cx(
+        "border-border-subtle bg-surface rounded-xl border",
+        padded && "p-6",
+        accent && accents[accent],
+        className
+      )}
       {...rest}
     >
       {hasHeader && (
-        <div class={cx("flex items-center justify-between gap-4", padded ? "mb-4" : "border-line border-b px-6 py-4")}>
-          {typeof title === "string" ? <h2 class="text-md text-fg font-semibold">{title}</h2> : title}
+        <div
+          class={cx(
+            "flex items-center justify-between gap-4",
+            padded ? "mb-4" : "border-border-subtle border-b px-6 py-4"
+          )}
+        >
+          {typeof title === "string" ? <h2 class="text-md text-text-primary font-semibold">{title}</h2> : title}
           {action}
         </div>
       )}

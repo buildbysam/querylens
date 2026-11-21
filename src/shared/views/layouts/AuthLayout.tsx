@@ -2,17 +2,11 @@ import type { PageScript } from "@/shared/views/assets.js";
 import { Document } from "@/shared/views/layouts/Document.js";
 import type { Child } from "hono/jsx";
 
-/** Full viewport, content centred on both axes, faint accent radial glow. no shell. */
+/** Full viewport on the app background, content centred on both axes. No shell, no decoration. */
 export function AuthLayout({ title, script, children }: { title?: string; script?: PageScript; children?: Child }) {
   return (
     <Document title={title} bodyClass="min-h-screen" script={script}>
-      <main class="relative isolate flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 py-12">
-        <div
-          class="from-accent-subtle pointer-events-none absolute top-1/2 left-1/2 -z-10 size-160 -translate-x-1/2 -translate-y-1/2 rounded-full bg-radial to-transparent to-70%"
-          aria-hidden="true"
-        />
-        {children}
-      </main>
+      <main class="flex min-h-screen flex-col items-center justify-center px-4 py-12">{children}</main>
     </Document>
   );
 }

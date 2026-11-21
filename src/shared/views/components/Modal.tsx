@@ -1,6 +1,6 @@
 import { cx } from "@/shared/lib/cx.js";
-import { Icon } from "@/shared/views/components/Icon.js";
 import type { Child } from "hono/jsx";
+import { Icon } from "@/shared/views/components/Icon.js";
 
 export type ModalSize = "md" | "wide" | "lg";
 
@@ -53,7 +53,7 @@ export function Modal({ id, title, size = "md", children, footer, bodyData }: Mo
         class="fixed inset-0 z-50 flex items-center justify-center p-4"
       >
         <div
-          class="bg-backdrop absolute inset-0"
+          class="bg-app/80 absolute inset-0"
           aria-hidden="true"
           x-show="open"
           x-transition:enter="transition-opacity duration-200 ease-standard"
@@ -79,22 +79,22 @@ export function Modal({ id, title, size = "md", children, footer, bodyData }: Mo
           x-transition:leave-start="opacity-100 translate-y-0"
           x-transition:leave-end="opacity-0 translate-y-2"
           class={cx(
-            "border-line bg-elevated shadow-overlay relative flex max-h-full w-full flex-col rounded-xl border p-6",
+            "border-border bg-elevated shadow-overlay relative flex max-h-full w-full flex-col rounded-xl border p-6",
             widths[size]
           )}
           {...(bodyData ? { "x-data": bodyData } : {})}
         >
           <div class="flex items-start justify-between gap-4">
-            <h2 id={titleId} class="tracking-heading text-fg text-lg font-semibold">
+            <h2 id={titleId} class="tracking-heading text-text-primary text-lg font-semibold">
               {title}
             </h2>
             <button
               type="button"
-              class="text-fg-muted ease-standard hover:bg-subtle hover:text-fg -mt-1 -mr-2 flex size-8 items-center justify-center rounded-lg transition-colors duration-150"
+              class="text-text-muted ease-standard hover:bg-surface hover:text-text-primary -mt-1 -mr-2 flex size-8 items-center justify-center rounded-lg transition-colors duration-150"
               aria-label="Close"
               x-on:click="close()"
             >
-              <Icon name="x" />
+              <Icon name="x" size={16} />
             </button>
           </div>
           <div class="mt-4 min-h-0 overflow-y-auto">{children}</div>

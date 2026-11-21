@@ -1,13 +1,13 @@
 import { cx } from "@/shared/lib/cx.js";
-import { Icon, type IconName } from "@/shared/views/components/Icon.js";
 import type { Child } from "hono/jsx";
+import { Icon, type IconName } from "@/shared/views/components/Icon.js";
 
 export type BannerStatus = "success" | "warning" | "danger";
 
-const styles: Record<BannerStatus, { box: string; icon: string; iconName: IconName }> = {
-  success: { box: "bg-success/10 border-success/35", icon: "text-success", iconName: "check-circle" },
-  warning: { box: "bg-warning/10 border-warning/35", icon: "text-warning", iconName: "alert-triangle" },
-  danger: { box: "bg-danger/10 border-danger/35", icon: "text-danger", iconName: "x-circle" },
+const styles: Record<BannerStatus, { box: string; iconClass: string; icon: IconName }> = {
+  success: { box: "bg-success-bg/30 border-success/40", iconClass: "text-success", icon: "check-circle" },
+  warning: { box: "bg-warning-bg/30 border-warning/40", iconClass: "text-warning", icon: "alert-triangle" },
+  danger: { box: "bg-danger-bg/30 border-danger/40", iconClass: "text-danger", icon: "x-circle" },
 };
 
 export interface StatusBannerProps {
@@ -20,17 +20,17 @@ export interface StatusBannerProps {
 }
 
 export function StatusBanner({ status, headline, subline, action, class: className }: StatusBannerProps) {
-  const s = styles[status];
+  const { box, iconClass, icon } = styles[status];
   return (
     <div
-      class={cx("flex min-h-24 items-center gap-4 rounded-xl border px-6 py-4", s.box, className)}
+      class={cx("flex min-h-24 items-center gap-4 rounded-xl border px-6 py-4", box, className)}
       role="status"
       aria-live="polite"
     >
-      <Icon name={s.iconName} size={32} class={s.icon} />
+      <Icon name={icon} size={32} class={iconClass} />
       <div class="flex min-w-0 flex-1 flex-col gap-1">
-        <p class="tracking-heading text-fg text-lg font-semibold">{headline}</p>
-        {subline && <p class="text-fg-secondary text-sm">{subline}</p>}
+        <p class="tracking-heading text-text-primary text-lg font-semibold">{headline}</p>
+        {subline && <p class="text-text-secondary text-sm">{subline}</p>}
       </div>
       {action && <div class="shrink-0">{action}</div>}
     </div>

@@ -1,17 +1,17 @@
 import { cx } from "@/shared/lib/cx.js";
-import { Icon } from "@/shared/views/components/Icon.js";
 import { inputClass } from "@/shared/views/components/Input.js";
 import type { Child } from "hono/jsx";
+import { Icon } from "@/shared/views/components/Icon.js";
 
 export const popoverClass =
-  "absolute z-30 mt-2 min-w-full overflow-hidden rounded-lg border border-line bg-elevated p-1 shadow-overlay";
+  "absolute z-30 mt-2 min-w-full overflow-hidden rounded-lg border border-border bg-surface p-1 shadow-overlay";
 
 export function optionClass(selected: boolean) {
   return cx(
     "flex h-9 w-full items-center gap-2 rounded-md px-3 text-left text-base transition-colors duration-150 ease-standard",
     selected
-      ? "bg-accent-subtle text-accent"
-      : "text-fg-secondary hover:bg-subtle hover:text-fg focus:bg-subtle focus:text-fg"
+      ? "bg-brand-900 text-brand-400"
+      : "text-text-secondary hover:bg-hover hover:text-text-primary focus:bg-hover focus:text-text-primary"
   );
 }
 
@@ -71,8 +71,8 @@ export function Dropdown(props: DropdownProps) {
       >
         {searchable && (
           <div class="relative mb-1">
-            <span class="text-fg-muted pointer-events-none absolute inset-y-0 left-3 flex items-center">
-              <Icon name="search" />
+            <span class="text-text-muted pointer-events-none absolute inset-y-0 left-3 flex items-center">
+              <Icon name="search" size={16} />
             </span>
             <input
               type="search"
@@ -90,8 +90,8 @@ export function Dropdown(props: DropdownProps) {
             const inner = (
               <>
                 <span class="truncate">{option.label}</span>
-                {option.meta && <span class="text-fg-muted ml-auto truncate font-mono text-xs">{option.meta}</span>}
-                {isSelected && <Icon name="check" class={option.meta ? "" : "ml-auto"} />}
+                {option.meta && <span class="text-text-muted ml-auto truncate font-mono text-xs">{option.meta}</span>}
+                {isSelected && <Icon name="check" size={16} class={option.meta ? "" : "ml-auto"} />}
               </>
             );
             return (
@@ -124,7 +124,7 @@ export function Dropdown(props: DropdownProps) {
           })}
         </ul>
         {searchable && (
-          <p class="text-fg-muted px-3 py-2 text-sm" x-show="!hasMatches()" x-cloak>
+          <p class="text-text-muted px-3 py-2 text-sm" x-show="!hasMatches()" x-cloak>
             {emptyText}
           </p>
         )}
@@ -148,8 +148,8 @@ export function Select({ placeholder = "Select…", class: className, ...props }
         triggerClass={cx(inputClass(), "flex items-center justify-between gap-2 text-left")}
         trigger={
           <>
-            <span class={current ? "truncate" : "text-fg-muted truncate"}>{current?.label ?? placeholder}</span>
-            <Icon name="chevron-down" class="text-fg-muted" />
+            <span class={current ? "truncate" : "text-text-muted truncate"}>{current?.label ?? placeholder}</span>
+            <Icon name="chevron-down" size={16} class="text-text-muted" />
           </>
         }
       />

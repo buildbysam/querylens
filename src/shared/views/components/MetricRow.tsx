@@ -17,16 +17,20 @@ export function MetricRow({ metrics, class: className }: { metrics: Metric[]; cl
       {metrics.map((metric, index) => (
         <>
           {index > 0 && (
-            <div class="text-fg-muted" aria-hidden="true">
+            <div class="text-text-muted" aria-hidden="true">
               ·
             </div>
           )}
           <div class="flex min-w-0 flex-col gap-1">
-            <dt class="text-2xs tracking-label text-fg-muted font-semibold uppercase">{metric.label}</dt>
+            <dt class="text-2xs tracking-label text-text-muted font-semibold uppercase">{metric.label}</dt>
             <dd
               class={cx(
-                "truncate font-mono text-base",
-                metric.tone === "danger" ? "text-danger" : metric.tone === "warning" ? "text-warning" : "text-fg"
+                "truncate font-mono text-base tabular-nums",
+                metric.tone === "danger"
+                  ? "text-danger"
+                  : metric.tone === "warning"
+                    ? "text-warning"
+                    : "text-text-primary"
               )}
             >
               {metric.value}

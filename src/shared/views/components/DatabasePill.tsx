@@ -1,7 +1,7 @@
-import { Icon } from "@/shared/views/components/Icon.js";
 import { Dropdown } from "@/shared/views/components/Select.js";
 import type { StatusVariant } from "@/shared/views/components/StatusBadge.js";
 import { StatusDot } from "@/shared/views/components/StatusDot.js";
+import { Icon } from "@/shared/views/components/Icon.js";
 
 export interface PillDatabase {
   id: string;
@@ -34,13 +34,13 @@ export function DatabasePill({ databases, selectedId, hrefFor }: DatabasePillPro
       emptyText="No matching databases"
       panelClass="w-80"
       selected={selected.id}
-      triggerClass="inline-flex h-8 max-w-64 items-center gap-2 rounded-lg border border-line bg-elevated px-3 text-sm text-fg transition-colors duration-150 ease-standard hover:border-line-strong"
+      triggerClass="inline-flex h-8 max-w-64 items-center gap-2 rounded-lg border border-border bg-elevated px-3 text-sm text-text-primary transition-colors duration-150 ease-standard hover:border-border-hover"
       trigger={
         <>
           <StatusDot variant={selected.status} />
           <span class="sr-only">{selected.statusLabel}: </span>
           <span class="truncate font-medium">{selected.name}</span>
-          <Icon name="chevron-down" class="text-fg-muted" />
+          <Icon name="chevron-down" size={16} class="text-text-muted" />
         </>
       }
       options={databases.map((d) => ({ value: d.id, label: d.name, meta: `${d.host}:${d.port}`, href: hrefFor(d.id) }))}

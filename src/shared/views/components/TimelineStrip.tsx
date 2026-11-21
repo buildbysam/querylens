@@ -15,7 +15,7 @@ const barColor: Record<TimelineStatus, string> = {
   success: "bg-success",
   warning: "bg-warning",
   danger: "bg-danger",
-  none: "bg-subtle",
+  none: "bg-elevated",
 };
 
 const statusText: Record<TimelineStatus, string> = {
@@ -53,7 +53,7 @@ export function TimelineStrip({
           <span class={cx("block h-full w-full rounded-sm", barColor[bar.status])} />
           {bar.time && (
             <span
-              class="border-line bg-elevated text-fg-secondary shadow-overlay pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 hidden -translate-x-1/2 rounded-lg border px-2 py-1 text-xs whitespace-nowrap group-hover:block"
+              class="border-border bg-elevated text-text-secondary shadow-overlay pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 hidden -translate-x-1/2 rounded-lg border px-2 py-1 text-xs whitespace-nowrap group-hover:block"
               aria-hidden="true"
             >
               <span class="font-mono">{bar.time}</span> · {statusText[bar.status]}

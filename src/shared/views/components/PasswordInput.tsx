@@ -1,6 +1,6 @@
 import { cx } from "@/shared/lib/cx.js";
-import { Icon } from "@/shared/views/components/Icon.js";
 import { FieldError, FieldLabel, inputClass } from "@/shared/views/components/Input.js";
+import { Icon } from "@/shared/views/components/Icon.js";
 
 export interface PasswordInputProps {
   id?: string;
@@ -65,7 +65,7 @@ export function PasswordInput(props: PasswordInputProps) {
         />
         <button
           type="button"
-          class="text-fg-muted ease-standard hover:text-fg absolute inset-y-0 right-0 flex w-10 items-center justify-center rounded-lg transition-colors duration-150"
+          class="text-text-muted ease-standard hover:text-text-primary absolute inset-y-0 right-0 flex w-10 items-center justify-center rounded-lg transition-colors duration-150"
           aria-label="Show password"
           x-bind:aria-label="shown ? 'Hide password' : 'Show password'"
           x-bind:aria-pressed="shown.toString()"

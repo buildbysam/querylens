@@ -1,59 +1,51 @@
 @import "tailwindcss";
 
-:root {
-  color-scheme: dark;
-
-  --bg-base: #0a0a0b;
-  --bg-surface: #121214;
-  --bg-elevated: #1a1a1d;
-  --bg-subtle: #232327;
-  --border-default: #2a2a2e;
-  --border-strong: #3a3a40;
-  --text-primary: #f5f5f7;
-  --text-secondary: #a1a1aa;
-  --text-muted: #6b6b73;
-  --accent-primary: #ff6b1a;
-  --accent-hover: #ff8a47;
-  --accent-subtle: rgba(255, 107, 26, 0.12);
-  --accent-border: rgba(255, 107, 26, 0.35);
-  --success: #22c55e;
-  --warning: #eab308;
-  --danger: #ef4444;
-  --info: #3b82f6;
-
-  --backdrop: rgba(0, 0, 0, 0.6);
-  --knob: #ffffff;
-  --elevation-overlay: 0 8px 32px rgba(0, 0, 0, 0.5);
-
-  --font-ui: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-code: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
-}
-
-@theme inline {
+@theme static {
   --color-*: initial;
-  --color-canvas: var(--bg-base);
-  --color-surface: var(--bg-surface);
-  --color-elevated: var(--bg-elevated);
-  --color-subtle: var(--bg-subtle);
-  --color-line: var(--border-default);
-  --color-line-strong: var(--border-strong);
-  --color-fg: var(--text-primary);
-  --color-fg-secondary: var(--text-secondary);
-  --color-fg-muted: var(--text-muted);
-  --color-accent: var(--accent-primary);
-  --color-accent-hover: var(--accent-hover);
-  --color-accent-subtle: var(--accent-subtle);
-  --color-accent-border: var(--accent-border);
-  --color-success: var(--success);
-  --color-warning: var(--warning);
-  --color-danger: var(--danger);
-  --color-info: var(--info);
-  --color-backdrop: var(--backdrop);
-  --color-knob: var(--knob);
 
-  /* fonts */
-  --font-sans: var(--font-ui);
-  --font-mono: var(--font-code);
+  /* brand  */
+  --color-brand-100: #ccfbf1; /* primary light */
+  --color-brand-400: #2dd4bf; /* accent · links · selected nav text */
+  --color-brand-600: #0d9488; /* primary · primary button · focus border */
+  --color-brand-700: #0f766e; /* primary hover */
+  --color-brand-900: #134e4a; /* selected navigation background */
+
+  /* backgrounds */
+  --color-app: #0b1120;
+  --color-sidebar: #0f172a;
+  --color-surface: #111827;
+  --color-elevated: #1e293b;
+  --color-table-header: #1e293b;
+  --color-hover: #1e293b;
+  --color-input: #0f172a;
+
+  /* text */
+  --color-text-primary: #f1f5f9;
+  --color-text-secondary: #94a3b8;
+  --color-text-muted: #64748b;
+  --color-text-inverse: #ffffff;
+
+  /* borders */
+  --color-border: #334155;
+  --color-border-subtle: #1e293b;
+  --color-border-focus: #0d9488;
+  /* hover affordance on inputs / secondary buttons (reuses the muted slate) */
+  --color-border-hover: #64748b;
+
+  /* semantic status */
+  --color-success: #22c55e;
+  --color-success-bg: #14532d;
+  --color-warning: #f59e0b;
+  --color-warning-bg: #78350f;
+  --color-danger: #ef4444;
+  --color-danger-bg: #7f1d1d;
+  --color-info: #3b82f6;
+  --color-info-bg: #1e3a8a;
+  --color-inactive: #64748b;
+
+  /* typography */
+  --font-sans: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
 
   --text-*: initial;
   --text-2xs: 11px;
@@ -84,9 +76,9 @@
   --radius-lg: 8px;
   --radius-xl: 12px;
   --radius-2xl: 16px;
-  --shadow-overlay: var(--elevation-overlay);
+  --shadow-overlay: 0 8px 24px rgb(0 0 0 / 0.4);
 
-  /* max-width for empty-state copy (§4.10: max 60ch) */
+  /* max-width for empty-state copy */
   --container-copy: 60ch;
 
   --ease-standard: ease;
@@ -117,20 +109,30 @@
 }
 
 @layer base {
+  :root {
+    color-scheme: dark;
+  }
+
   html {
-    background-color: var(--bg-base);
-    color: var(--text-secondary);
-    font-family: var(--font-ui);
+    background-color: var(--color-app);
+    color: var(--color-text-secondary);
+    font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
 
   body {
-    @apply bg-canvas text-base;
+    @apply bg-app text-base;
   }
 
+  /* visible focus on every interactive element, in the brand teal */
   :focus-visible {
-    outline: 2px solid var(--accent-primary);
+    outline: 2px solid var(--color-border-focus);
     outline-offset: 2px;
+  }
+
+  ::selection {
+    background-color: var(--color-brand-900);
+    color: var(--color-text-primary);
   }
 
   [x-cloak] {
