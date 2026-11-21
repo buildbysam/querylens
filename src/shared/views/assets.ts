@@ -11,7 +11,7 @@ export const STATIC_DIRS = ["css", "js", "images", "favicon"] as const;
 
 export const STYLESHEET = "/css/styles.css";
 export const FONTS_STYLESHEET =
-  "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap";
+  "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap";
 
 /* --- images --- */
 

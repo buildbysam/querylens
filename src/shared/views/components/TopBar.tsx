@@ -46,7 +46,7 @@ function AvatarMenu({ user }: { user: CurrentUser }) {
 }
 
 export interface TopBarProps {
-  /** Current page title (Inter 500 / 14px). */
+  /** Current page title (500 / 14px). */
   title: string;
   user: CurrentUser;
   /** Optional database pill — only present on /app/snapshots (§3.1). */

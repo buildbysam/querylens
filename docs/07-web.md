@@ -20,7 +20,7 @@ Layouts live in `src/shared/views/layouts/`:
 
 | Layout             | Description                                                                                                                         |
 | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `Document`         | `<html>`/`<head>`: Inter + JetBrains Mono (Google Fonts), favicon, `/css/styles.css`, `/js/app.js` and the page's entry module.     |
+| `Document`         | `<html>`/`<head>`: JetBrains Mono (Google Fonts), favicon, `/css/styles.css`, `/js/app.js` and the page's entry module.             |
 | `AppLayout`        | 56 px sticky top bar, 240 px sidebar (64 px icon-only at 768–1023 px, drawer below 768 px), content area max 1440 px, toast region. |
 | `AuthLayout`       | Full-viewport centred column on the app background; no decoration.                                                                  |
 | `StandaloneLayout` | Error pages: logo linking to `/app/databases`, centred 520 px column on the app background.                                         |
@@ -116,9 +116,8 @@ it in that page's entry under `pages/`, and reference it from JSX with
 
 Collected statistics are displayed as a table whose columns come from the first
 row's keys, so any collected view displays without a dedicated page. Headers are
-the keys in Title Case. Columns whose values are numbers are right-aligned in
-monospace; identifiers, timestamps, intervals, sizes and query text are set in
-monospace; other text uses Inter.
+the keys in Title Case. The whole interface is set in JetBrains Mono; columns
+whose values are numbers are right-aligned with tabular numerals.
 
 | State                                 | Shown when                                                                            |
 | ------------------------------------- | ------------------------------------------------------------------------------------- |

@@ -46,8 +46,9 @@
   --color-inactive: #64748b;
 
   /* typography */
-  --font-sans: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
+  /* JetBrains Mono is the only typeface; both tokens point at it so `font-mono` keeps working */
+  --font-sans: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-mono: var(--font-sans);
 
   --text-*: initial;
   --text-2xs: 11px;
