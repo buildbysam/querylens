@@ -1,31 +1,62 @@
-# QueryLens
+<p align="center">
+  <img src="public/images/querylens.png" alt="QueryLens logo" width="96" height="96" />
+</p>
 
-QueryLens is a PostgreSQL performance monitoring platform. It registers
-PostgreSQL databases, collects operational statistics from PostgreSQL system
-views on a schedule, stores them without modification, and displays them through
-a server-rendered web interface.
+<h1 align="center">QueryLens</h1>
+
+<p align="center">
+  Read-only PostgreSQL performance monitoring, in one self-hosted app.
+</p>
+
+<p align="center">
+  <a href="#quick-start">Quick start</a> ·
+  <a href="#documentation">Docs</a> ·
+  <a href="docs/02-architecture.md">Architecture</a>
+</p>
+
+---
+
+## What it does
+
+- **Registers databases** and tests each connection before saving it; passwords
+  are stored encrypted.
+- **Collects statistics** from PostgreSQL system views (`pg_stat_database`,
+  `pg_stat_activity`, tables, indexes and `pg_stat_statements`) on a fixed
+  schedule, over read-only sessions.
+- **Stores every collection unchanged** as an immutable snapshot.
+- **Shows the data as plain tables** that refresh in place, plus a health page
+  for QueryLens itself.
 
 ## Quick start
 
+Requires Docker with Compose.
+
 ```bash
-cp .env.example .env          # set POSTGRES_PASSWORD, the four secrets and APP_ORIGIN
+cp .env.example .env    # set POSTGRES_PASSWORD, the four secrets and APP_ORIGIN
 docker compose up --build -d
 docker compose run --rm migrate node scripts/create-admin.js --name "Ada Lovelace" --email ada@example.com
 ```
 
-Then open `http://localhost:8000`. For local development without Docker, see
-[`docs/03-setup.md`](docs/03-setup.md#34-quick-start--local-development).
+Open `http://localhost:8000` and sign in.
+
+## Local development
+
+Requires Node.js 22+, pnpm 11 and a PostgreSQL database.
 
 ```bash
-pnpm dev         # server + Tailwind watcher
-pnpm typecheck   # TypeScript
+pnpm install
+cp .env.example .env.development.local    # point DATABASE_URL at your database
+pnpm exec dotenv run -f .env.development.local -- drizzle-kit migrate
+pnpm create-admin --name "Ada Lovelace" --email ada@example.com
+pnpm dev                                  # server + Tailwind watcher
 ```
+
+`pnpm typecheck` checks types; `pnpm build` and `pnpm start` run the production
+build. See [`docs/03-setup.md`](docs/03-setup.md) for every setting.
 
 ## Documentation
 
-Start with `01-overview.md` for what QueryLens is, then `03-setup.md` to run it.
-
-| File                                                   | Description                                                            |
+| Guide                                                  | Covers                                                                 |
 | ------------------------------------------------------ | ---------------------------------------------------------------------- |
 | [`docs/01-overview.md`](docs/01-overview.md)           | Purpose, scope, capabilities and technology                            |
 | [`docs/02-architecture.md`](docs/02-architecture.md)   | System structure, request pipeline, collection cycle and module layout |
@@ -37,3 +68,8 @@ Start with `01-overview.md` for what QueryLens is, then `03-setup.md` to run it.
 | [`docs/08-auth-security.md`](docs/08-auth-security.md) | Authentication, credential protection and security practices           |
 | [`docs/09-health-errors.md`](docs/09-health-errors.md) | Platform health page and error pages                                   |
 | [`docs/10-dev-guide.md`](docs/10-dev-guide.md)         | Project structure, migrations, deployment and limitations              |
+
+## Built with
+
+Node.js 22 · TypeScript · Hono · PostgreSQL with Drizzle ORM · Tailwind CSS v4 ·
+Alpine.js · Docker
