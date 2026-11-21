@@ -1,5 +1,6 @@
 import { auth } from "@/modules/auth/routes.js";
 import { databasesApi } from "@/modules/databases/routes.js";
+import { probes } from "@/modules/health/probes.js";
 import { health } from "@/modules/health/routes.js";
 import { pages } from "@/modules/pages/routes.js";
 import { snapshotsApi } from "@/modules/snapshots/routes.js";
@@ -36,6 +37,8 @@ export function createApp() {
 
   app.use("*", requestIdMiddleware);
 
+  // liveness/readiness probes: before CSRF, rate limiting, access logging and auth
+  app.route("/", probes);
 
   // static assets (css, js, images, favicon)
   for (const dir of STATIC_DIRS) {
