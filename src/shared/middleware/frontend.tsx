@@ -1,4 +1,4 @@
-import { config } from "@/config.js";
+import { PUBLIC_DIR } from "@/shared/views/assets.js";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { jsxRenderer } from "hono/jsx-renderer";
 
@@ -10,7 +10,7 @@ declare module "hono" {
 }
 
 export const staticMiddleware = serveStatic({
-  root: config.isProduction ? "./dist/public" : "./public",
+  root: PUBLIC_DIR,
 });
 
 export const jsxMiddleware = jsxRenderer(({ children }) => <>{children}</>, { docType: true });

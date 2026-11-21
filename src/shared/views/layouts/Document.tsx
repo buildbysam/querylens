@@ -1,10 +1,7 @@
 import { APP_NAME } from "@/shared/lib/app-info.js";
-import type { PageScript } from "@/shared/views/assets.js";
+import { FAVICON, FONTS_STYLESHEET, STYLESHEET, type PageScript } from "@/shared/views/assets.js";
 import { ClientScripts } from "@/shared/views/components/ClientScripts.js";
 import type { Child } from "hono/jsx";
-
-const FONTS_HREF =
-  "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap";
 
 export interface DocumentProps {
   title?: string;
@@ -25,8 +22,10 @@ export function Document({ title, bodyClass, script, children }: DocumentProps) 
         <title>{title ? `${title} · ${APP_NAME}` : `${APP_NAME} · PostgreSQL Observability`}</title>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
-        <link rel="stylesheet" href={FONTS_HREF} />
-        <link rel="stylesheet" href="/css/styles.css" />
+        <link rel="stylesheet" href={FONTS_STYLESHEET} />
+        <link rel="icon" type="image/png" href={FAVICON} />
+        <link rel="apple-touch-icon" href={FAVICON} />
+        <link rel="stylesheet" href={STYLESHEET} />
         <ClientScripts page={script} />
       </head>
       <body class={bodyClass}>{children}</body>

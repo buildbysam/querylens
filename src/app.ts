@@ -10,6 +10,7 @@ import { jsxMiddleware, staticMiddleware } from "@/shared/middleware/frontend.js
 import { loggerMiddleware } from "@/shared/middleware/logger.js";
 import { rateLimitMiddleware } from "@/shared/middleware/rate-limit.js";
 import { requestIdMiddleware } from "@/shared/middleware/request-id.js";
+import { FAVICON, STATIC_DIRS } from "@/shared/views/assets.js";
 import type { AppEnv } from "@/types.js";
 import { Hono } from "hono";
 import { getCookie } from "hono/cookie";
@@ -35,11 +36,14 @@ export function createApp() {
 
   app.use("*", requestIdMiddleware);
 
-  // static assets: served before CSRF / rate limiting / auth
-  app.use("/css/*", staticMiddleware);
-  app.use("/js/*", staticMiddleware);
-  app.use("/images/*", staticMiddleware);
-  app.get("/favicon.ico", (c) => c.body(null, 204));
+
+  // static assets (css, js, images, favicon)
+  for (const dir of STATIC_DIRS) {
+    app.use(`/${dir}/*`, staticMiddleware);
+  }
+
+  // browsers that ignore the <link rel="icon"> still ask for /favicon.ico
+  app.get("/favicon.ico", (c) => c.redirect(FAVICON, 301));
 
   app.use("*", csrfMiddleware);
   app.use(

@@ -1,45 +1,44 @@
 import { APP_NAME } from "@/shared/lib/app-info.js";
 import { cx } from "@/shared/lib/cx.js";
+import { LOGO_PNG, LOGO_WEBP } from "@/shared/views/assets.js";
+
+export type LogoMarkSize = 24 | 28 | 40;
 
 export interface LogoMarkProps {
-  size?: 24 | 32;
+  /** Rendered width and height in px (the asset is square). */
+  size?: LogoMarkSize;
+  /** "" when visible text next to the mark already names QueryLens. */
+  alt?: string;
   class?: string;
 }
 
-/** geometric mark: a vertical orange beam capped by a dot. The only custom SVG allowed. */
-export function LogoMark({ size = 32, class: className }: LogoMarkProps) {
+/**
+ * QueryLens mark from public/images/querylens.webp, with public/images/querylens.png as fallback.
+ */
+export function LogoMark({ size = 28, alt = APP_NAME, class: className }: LogoMarkProps) {
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={size}
-      height={size}
-      viewBox="0 0 32 32"
-      fill="currentColor"
-      aria-hidden="true"
-      focusable="false"
-      class={cx("text-accent shrink-0", className)}
-    >
-      <circle cx="16" cy="6" r="4" />
-      <rect x="13" y="12" width="6" height="18" rx="3" />
-    </svg>
+    <picture class={cx("inline-flex shrink-0", className)}>
+      <source srcset={LOGO_WEBP} type="image/webp" />
+      <img src={LOGO_PNG} alt={alt} width={size} height={size} class="block object-contain" decoding="async" />
+    </picture>
   );
 }
 
 export interface LogoProps {
-  /** 24px mark + 16px wordmark (shell / error pages) or 32px mark + 20px wordmark (login). */
   size?: "sm" | "lg";
   href?: string;
   class?: string;
 }
 
+/** Mark + "QueryLens" wordmark */
 export function Logo({ size = "sm", href, class: className }: LogoProps) {
   const content = (
     <>
-      <LogoMark size={size === "lg" ? 32 : 24} />
-      <span class={cx("text-fg font-semibold", size === "lg" ? "text-lg" : "text-md")}>{APP_NAME}</span>
+      <LogoMark size={size === "lg" ? 40 : 24} alt="" />
+      <span class={cx("text-text-primary font-semibold", size === "lg" ? "text-lg" : "text-md")}>{APP_NAME}</span>
     </>
   );
-  const classes = cx("inline-flex items-center", size === "lg" ? "gap-4" : "gap-2", className);
+  const classes = cx("inline-flex items-center", size === "lg" ? "gap-3" : "gap-2", className);
 
   return href ? (
     <a href={href} class={cx(classes, "rounded-lg")} aria-label={`${APP_NAME} home`}>
