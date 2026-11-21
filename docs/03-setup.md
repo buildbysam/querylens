@@ -70,8 +70,10 @@ cp .env.example .env
 # 2. Build and start: db → migrate (one-shot) → app
 docker compose up --build -d
 
-# 3. Create the administrator account (prompts for the password)
-docker compose exec app node scripts/create-admin.js \
+# 3. Create the administrator account (prompts for the password).
+#    Runs in a one-off container from the `migrate` image; the app image
+#    does not contain setup scripts.
+docker compose run --rm migrate node scripts/create-admin.js \
   --name "Ada Lovelace" --email ada@example.com
 
 # 4. Open the app
@@ -80,11 +82,40 @@ open http://localhost:8000
 
 Services started by `compose.yaml`:
 
-| Service   | Purpose                                                                              |
-| --------- | ------------------------------------------------------------------------------------ |
-| `db`      | PostgreSQL 17 metadata database, volume `pgdata`, not published to the host.         |
-| `migrate` | Applies `drizzle/` migrations once, then exits.                                      |
-| `app`     | QueryLens on port 8000, logs in volume `logs`, starts only after `migrate` succeeds. |
+| Service   | Purpose                                                                                                                       |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `db`      | PostgreSQL 17 metadata database, volume `pgdata`, not published to the host.                                                  |
+| `migrate` | Dockerfile target `migrate`: applies `drizzle/` migrations once, then exits. Also used for one-off tasks (`create-admin.js`). |
+| `app`     | Dockerfile target `runtime`: QueryLens on port 8000, logs in volume `logs`, starts only after `migrate` succeeds.             |
+
+### Image
+
+The `Dockerfile` is multi-stage. The `runtime` image contains only compiled
+JavaScript (`dist/`), production dependencies and static assets — no TypeScript
+sources, `tsx`, compilers or dev packages — and runs as the `node` user. Its
+build ends with a smoke test that loads the whole application with production
+dependencies only, so a missing package or asset fails the build. All stages use
+the same digest-pinned `node:22-bookworm-slim`, so native modules (bcrypt) built
+during the build match the runtime.
+
+`compose.yaml` runs `app` with a read-only root filesystem (writable: the `logs`
+volume and a `/tmp` tmpfs), all Linux capabilities dropped, `no-new-privileges`,
+an init process, a 1 CPU / 512 MB limit and a 20 s stop grace period. Secrets
+are passed as environment variables at run time and are never part of an image;
+`.dockerignore` is an allowlist, so `.env` files, `.git` and local build output
+never enter the build context.
+
+| Probe     | Path           | Meaning                                                                                  |
+| --------- | -------------- | ---------------------------------------------------------------------------------------- |
+| Liveness  | `GET /healthz` | The process serves HTTP. Used by the image `HEALTHCHECK`.                                |
+| Readiness | `GET /readyz`  | The metadata database answers (`503` otherwise). Use for load balancers / orchestrators. |
+
+The legacy Docker builder is enough to build the image. Optional: with BuildKit
+(`docker buildx`) installed you can add a pnpm store cache mount to the install
+steps to speed up rebuilds.
+
+Scan images before deploying, for example `docker scout cves querylens-app` or
+`trivy image querylens-app`.
 
 ## 3.4 Quick Start — Local Development
 

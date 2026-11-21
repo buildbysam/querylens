@@ -48,6 +48,14 @@ the Paused state appears only if it has been stopped. If the metadata database
 is down, `/health` itself cannot load (signing in needs the database) and the
 503 page is shown instead.
 
+### Probes
+
+For containers and orchestrators there are two unauthenticated endpoints
+([§6.6](06-api.md#66-health)): `GET /healthz` (liveness — the process answers;
+used by the Docker `HEALTHCHECK`) and `GET /readyz` (readiness — the metadata
+database answers, `503` otherwise). They return only a status word and do not
+replace the `/health` page.
+
 ## 9.2 Error Pages
 
 Every failure is rendered as one of seven designed pages for browsers, or as a

@@ -3,7 +3,8 @@
 ## 8.1 Authentication
 
 QueryLens requires a signed-in user for every page and data endpoint except the
-sign-in page.
+sign-in page. Also public: static assets (CSS, scripts, images, favicon) and the
+`/healthz` / `/readyz` probes, which return only a status word.
 
 | Aspect            | Implementation                                                                                                                                                                                                                                                            |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -48,7 +49,7 @@ sequenceDiagram
 | Read-only monitoring   | Monitoring sessions use `default_transaction_read_only=on`; PostgreSQL rejects writes.                                                                             |
 | No credential exposure | Connection errors are reduced to fixed reasons; the health payload redacts secret-looking keys as `••••`; error pages show only status, request ID, time and path. |
 | CSRF protection        | Unsafe methods require `Origin` equal to `APP_ORIGIN`; cross-site `Sec-Fetch-Site` values are refused.                                                             |
-| Rate limiting          | Per IP per 15 min: 100 requests without a session cookie, 600 with one (static assets exempt). Sign-in: 15 attempts per 30 min.                                    |
+| Rate limiting          | Per IP per 15 min: 100 requests without a session cookie, 600 with one (probes and static assets exempt). Sign-in: 15 attempts per 30 min.                         |
 | Security headers       | Hono `secureHeaders()` (frame, content-type, referrer and cross-origin policies).                                                                                  |
 | Script embedding       | Server data embedded in pages escapes `<`, U+2028 and U+2029.                                                                                                      |
 | Request tracing        | Server-generated request IDs (client-supplied IDs are ignored) appear in logs and on error pages.                                                                  |
@@ -64,5 +65,10 @@ sequenceDiagram
   origin.
 - Rate-limit counters, collection status and health history are kept in memory
   per process; run a single instance.
+- The Docker image runs as the non-root `node` user with root-owned, read-only
+  application files; `compose.yaml` adds a read-only root filesystem, dropped
+  Linux capabilities and `no-new-privileges`
+  ([§3.3](03-setup.md#33-quick-start--docker-compose-recommended)). Secrets are
+  injected at run time and never stored in an image.
 
 ---

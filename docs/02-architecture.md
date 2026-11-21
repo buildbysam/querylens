@@ -24,14 +24,14 @@ flowchart LR
 
 ## 2.2 Components
 
-| Component         | Location                                | Responsibility                                                                                     |
-| ----------------- | --------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| HTTP application  | `src/app.ts`                            | Builds the Hono app: middleware, routes, error handlers. Has no side effects.                      |
-| Process entry     | `src/index.ts`                          | Starts the HTTP server, the collector scheduler and the health sampler; handles graceful shutdown. |
-| Web interface     | `src/modules/pages`, `src/shared/views` | Server-rendered pages, layouts and shared components.                                              |
-| Collector         | `src/modules/collector`                 | Scheduled retrieval of statistics and storage of snapshots.                                        |
-| Health            | `src/modules/health`                    | Checks of QueryLens's own services, 30-second sampling, `/health` page and JSON.                   |
-| Metadata database | `src/shared/db`                         | Drizzle schema and the single connection pool.                                                     |
+| Component         | Location                                | Responsibility                                                                                                    |
+| ----------------- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| HTTP application  | `src/app.ts`                            | Builds the Hono app: middleware, routes, error handlers. Has no side effects.                                     |
+| Process entry     | `src/index.ts`                          | Starts the HTTP server, the collector scheduler and the health sampler; handles graceful shutdown.                |
+| Web interface     | `src/modules/pages`, `src/shared/views` | Server-rendered pages, layouts and shared components.                                                             |
+| Collector         | `src/modules/collector`                 | Scheduled retrieval of statistics and storage of snapshots.                                                       |
+| Health            | `src/modules/health`                    | Checks of QueryLens's own services, 30-second sampling, `/health` page and JSON, `/healthz` and `/readyz` probes. |
+| Metadata database | `src/shared/db`                         | Drizzle schema and the single connection pool.                                                                    |
 
 ## 2.3 Request Pipeline
 
@@ -40,7 +40,9 @@ Every request passes through the same middleware chain, in this order:
 ```mermaid
 flowchart TD
     A[Request] --> B[Request ID<br/>req_xxxxxxxxxxxx]
-    B --> C{Static asset?<br/>/css, /images, /favicon.ico}
+    B --> P{Probe?<br/>/healthz, /readyz}
+    P -->|yes| PR[Status JSON]
+    P -->|no| C{Static asset?<br/>/css, /js, /images, /favicon, /favicon.ico}
     C -->|yes| Z[Serve file]
     C -->|no| D[CSRF origin check<br/>unsafe methods only]
     D --> E[Rate limit<br/>100 / 600 per 15 min per IP]
@@ -53,6 +55,10 @@ flowchart TD
     I -->|session| R
     R -->|throws| K[onError → designed error page or JSON]
 ```
+
+Probes and static assets are answered before CSRF, rate limiting, access logging
+and sign-in. The static folders are listed once, in `STATIC_DIRS`
+(`src/shared/views/assets.ts`).
 
 Errors raised anywhere in the chain are converted by the global `onError` /
 `notFound` handlers (`src/shared/middleware/errors.tsx`) into one of the seven
@@ -90,7 +96,7 @@ types.
 | Databases      | `src/modules/databases` | Registration, connectivity testing, listing with status.                                 |
 | Collector      | `src/modules/collector` | View list, per-database collection, scheduler, in-memory status.                         |
 | Snapshots      | `src/modules/snapshots` | Read-only access to stored snapshots (`/api/views`, `/api/snapshots*`).                  |
-| Health         | `src/modules/health`    | Platform checks, sampler, `/health` routes.                                              |
+| Health         | `src/modules/health`    | Platform checks, sampler, `/health` routes, `/healthz` / `/readyz` probes.               |
 | Pages          | `src/modules/pages`     | Thin page compositions: login, databases, snapshots, health, error template.             |
 | Shared         | `src/shared`            | Metadata access (`db`), utilities (`lib`), middleware, layouts and components (`views`). |
 

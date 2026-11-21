@@ -20,10 +20,10 @@ Layouts live in `src/shared/views/layouts/`:
 
 | Layout             | Description                                                                                                                         |
 | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `Document`         | `<html>`/`<head>`: Inter + JetBrains Mono (Google Fonts), `/css/styles.css`, `/js/app.js` and the page's entry module.              |
+| `Document`         | `<html>`/`<head>`: Inter + JetBrains Mono (Google Fonts), favicon, `/css/styles.css`, `/js/app.js` and the page's entry module.     |
 | `AppLayout`        | 56 px sticky top bar, 240 px sidebar (64 px icon-only at 768–1023 px, drawer below 768 px), content area max 1440 px, toast region. |
-| `AuthLayout`       | Full-viewport centred column with a faint accent glow.                                                                              |
-| `StandaloneLayout` | Error pages: wordmark linking to `/app/databases`, centred 520 px column, status-coloured glow.                                     |
+| `AuthLayout`       | Full-viewport centred column on the app background; no decoration.                                                                  |
+| `StandaloneLayout` | Error pages: logo linking to `/app/databases`, centred 520 px column on the app background.                                         |
 
 ## 7.3 Interaction
 
@@ -134,19 +134,78 @@ monospace; other text uses Inter.
 Every component is a typed function in `src/shared/views/components/`: `Button`,
 `Input`, `PasswordInput`, `Select`/`Dropdown`, `StatusBadge`, `StatusDot`,
 `Card`, `DataTable`, `CodeBlock`, `Modal`, `Toast`, `EmptyState`, `Skeleton`,
-`SegmentedControl`, `Toggle`, `TimelineStrip`, `StatusBanner`, plus `Icon`
-(inlined Lucide), `Logo`, `MetricRow`, `TopBar`, `Sidebar`, `DatabasePill`.
+`SegmentedControl`, `Toggle`, `TimelineStrip`, `StatusBanner`, `Icon`, `Logo`,
+`MetricRow`, `TopBar`, `Sidebar`, `DatabasePill`, plus `ClientScripts` (the
+module `<script>` tags).
 
-Design tokens are CSS custom properties in `src/global.css`, mapped into
-Tailwind v4 through an `@theme inline` block (for example `bg-surface`,
-`text-fg-muted`, `border-line`, `text-2xs`, `tracking-label`, `shadow-overlay`).
-Tailwind's default colour palette is removed, so only tokens are available and
-no hex colour appears in JSX.
+Every public path the server uses — stylesheet, fonts, logo, favicon, icon
+folder, client scripts and the static folders — is defined once in
+`src/shared/views/assets.ts`.
+
+### Midnight Teal tokens
+
+The palette is defined once, in the `@theme` block of `src/global.css`. Each
+token is both a Tailwind utility and a CSS variable (`var(--color-app)`).
+Tailwind's default palette is removed, so only these colours exist and no hex
+value appears in JSX. Tailwind reads class names only from `src/` and
+`public/js/` (`@source` in `global.css`), so local and Docker builds produce the
+same CSS.
+
+| Group       | Tokens (utility examples)                                                                                                                                                                     |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Brand       | `brand-100` #CCFBF1, `brand-400` #2DD4BF (links, selected nav text), `brand-600` #0D9488 (primary, focus), `brand-700` #0F766E (primary hover), `brand-900` #134E4A (selected nav background) |
+| Backgrounds | `bg-app` #0B1120, `bg-sidebar` #0F172A, `bg-surface` #111827, `bg-elevated` #1E293B, `bg-table-header`, `bg-hover`, `bg-input`                                                                |
+| Text        | `text-text-primary` #F1F5F9, `text-text-secondary` #94A3B8, `text-text-muted` #64748B, `text-text-inverse` #FFFFFF                                                                            |
+| Borders     | `border-border` #334155, `border-border-subtle` #1E293B, `border-border-focus` #0D9488, `border-border-hover`                                                                                 |
+| Status      | `success`, `warning`, `danger`, `info` (+ `-bg` variants such as `bg-success-bg`), `inactive`                                                                                                 |
+
+Usage: primary buttons `bg-brand-600 text-text-inverse hover:bg-brand-700`;
+links `text-brand-400`; active navigation `bg-brand-900 text-brand-400`; cards
+and dividers `border-border-subtle`; inputs, popovers and secondary buttons
+`border-border`; status colours only for status, never as decoration.
+
+### Logo
+
+The official mark is `public/images/querylens.webp` with
+`public/images/querylens.png` as fallback. `LogoMark` renders it in a
+`<picture>`; `Logo` adds the "QueryLens" wordmark, since the asset contains
+none. The files are served directly and never modified.
+
+The favicon lives on its own in `public/favicon/favicon.png` (linked from
+`Document`; `/favicon.ico` redirects to it).
+
+| Folder                 | Contents                                                 |
+| ---------------------- | -------------------------------------------------------- |
+| `public/favicon/`      | `favicon.png` only                                       |
+| `public/images/`       | images used by the UI: `querylens.webp`, `querylens.png` |
+| `public/images/icons/` | one `.svg` file per icon                                 |
+
+### Icons
+
+Each icon is a standalone `.svg` file in `public/images/icons/` (24×24 outline,
+`stroke="currentColor"`, stroke 1.8, round caps and joins). A single component,
+`Icon` (`src/shared/views/components/Icon.tsx`), renders all of them:
+
+```tsx
+<Icon name="database" size={16} />
+<Icon name="alert-triangle" size={32} class="text-warning" label="Warning" />
+```
+
+`Icon` reads every file listed in `ICON_NAMES` once at start-up (from `public/`
+in development, `dist/public/` in production) and inlines its paths inside its
+own `<svg>`. Inlining, rather than `<img src="….svg">`, lets icons inherit the
+surrounding text colour (teal in the active nav, red for errors). A missing or
+malformed file stops start-up instead of rendering a blank icon.
+
+Default size is 20 (16 inline, 24 large, 32 for empty states and banners).
+Components that take an icon accept its name: `<Button icon="plus">`. Pass
+`label` for a meaningful icon; otherwise it is `aria-hidden`. To add an icon,
+add `public/images/icons/<name>.svg` and its name to `ICON_NAMES`.
 
 ## 7.7 Accessibility
 
-- 2 px orange focus ring with 2 px offset on every focusable element (global
-  `:focus-visible`).
+- 2 px teal (`border-focus`) focus ring with 2 px offset on every focusable
+  element (global `:focus-visible`).
 - Status is always dot + label + colour; badges and banners that update use
   `role="status"` / `aria-live="polite"`.
 - Modals trap focus, close on Esc, focus the first field, and return focus to

@@ -10,7 +10,7 @@ a server-rendered web interface.
 ```bash
 cp .env.example .env          # set POSTGRES_PASSWORD, the four secrets and APP_ORIGIN
 docker compose up --build -d
-docker compose exec app node scripts/create-admin.js --name "Ada Lovelace" --email ada@example.com
+docker compose run --rm migrate node scripts/create-admin.js --name "Ada Lovelace" --email ada@example.com
 ```
 
 Then open `http://localhost:8000`. For local development without Docker, see

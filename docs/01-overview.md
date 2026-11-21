@@ -71,7 +71,7 @@ sign-up.
 
 | Layer            | Technology                                                                               |
 | ---------------- | ---------------------------------------------------------------------------------------- |
-| Runtime          | Node.js ≥ 22, TypeScript, executed with `tsx`                                            |
+| Runtime          | Node.js ≥ 22, TypeScript (`tsx` in development, compiled to `dist/` for production)      |
 | HTTP framework   | Hono 4 with `@hono/node-server`                                                          |
 | Views            | Hono JSX (server-rendered), Tailwind CSS v4, Alpine.js 3 (CDN) for limited interactivity |
 | Metadata storage | PostgreSQL via Drizzle ORM and `pg`                                                      |

@@ -2,14 +2,14 @@
 
 ## 6.1 Conventions
 
-| Topic          | Rule                                                                                                                                                                                                     |
-| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Authentication | Every endpoint except `GET /login`, `POST /auth/login`, `GET /` and static assets requires a session cookie ([§8.1](08-auth-security.md#81-authentication)).                                             |
-| JSON vs pages  | Paths under `/api/*`, and any request whose `Accept` header includes `application/json` but not `text/html`, receive JSON. Everything else receives HTML.                                                |
-| CSRF           | `POST` requests must send an `Origin` header equal to `APP_ORIGIN`; otherwise `403`. Browsers do this automatically.                                                                                     |
-| Request ID     | Every response carries `X-Request-Id: req_<12 hex>`; errors repeat it in the body.                                                                                                                       |
-| Rate limits    | Per client IP, per 15 minutes: 100 requests without a session cookie, 600 with one. `POST /auth/login` is additionally limited to 15 per 30 minutes. Exceeding a limit returns `429` with `Retry-After`. |
-| Credentials    | Registered database passwords are never returned by any endpoint.                                                                                                                                        |
+| Topic          | Rule                                                                                                                                                                                                                                          |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Authentication | Every endpoint except `GET /login`, `POST /auth/login`, `GET /`, the probes (`/healthz`, `/readyz`), `/favicon.ico` and static assets requires a session cookie ([§8.1](08-auth-security.md#81-authentication)).                              |
+| JSON vs pages  | Paths under `/api/*`, and any request whose `Accept` header includes `application/json` but not `text/html`, receive JSON. Everything else receives HTML.                                                                                     |
+| CSRF           | `POST` requests must send an `Origin` header equal to `APP_ORIGIN`; otherwise `403`. Browsers do this automatically.                                                                                                                          |
+| Request ID     | Every response carries `X-Request-Id: req_<12 hex>`; errors repeat it in the body.                                                                                                                                                            |
+| Rate limits    | Per client IP, per 15 minutes: 100 requests without a session cookie, 600 with one; probes and static assets are exempt. `POST /auth/login` is additionally limited to 15 per 30 minutes. Exceeding a limit returns `429` with `Retry-After`. |
+| Credentials    | Registered database passwords are never returned by any endpoint.                                                                                                                                                                             |
 
 ### Response envelope
 
@@ -59,6 +59,8 @@ interface ApiResponse<T> {
 | `GET`  | `/api/snapshots`           | Retrieve recent snapshots for a database and view. |
 | `GET`  | `/api/snapshots/latest`    | Retrieve the most recent snapshot for each view.   |
 | `GET`  | `/health`                  | Platform health page, or JSON.                     |
+| `GET`  | `/healthz`                 | Liveness probe (no auth).                          |
+| `GET`  | `/readyz`                  | Readiness probe (no auth).                         |
 | `POST` | `/health/scheduler/resume` | Resume a stopped collector scheduler.              |
 
 ## 6.3 Authentication
@@ -212,6 +214,16 @@ database.
 
 ## 6.6 Health
 
+### `GET /healthz` and `GET /readyz`
+
+Unauthenticated probes for containers and orchestrators. They run before CSRF,
+rate limiting, access logging and sign-in, and reveal only a status word.
+
+| Path       | Checks                                            | Response                                                   |
+| ---------- | ------------------------------------------------- | ---------------------------------------------------------- |
+| `/healthz` | Nothing beyond the process answering              | `200 {"status":"ok"}`                                      |
+| `/readyz`  | `SELECT 1` on the metadata database (2 s timeout) | `200 {"status":"ready"}` or `503 {"status":"unavailable"}` |
+
 ### `GET /health`
 
 | Query     | Description                                                          |
@@ -295,6 +307,7 @@ was running.
 | Route                | Auth | Description                                                                                               |
 | -------------------- | ---- | --------------------------------------------------------------------------------------------------------- |
 | `GET /`              | —    | Redirects to `/app/databases`.                                                                            |
+| `GET /favicon.ico`   | —    | `301` to `/favicon/favicon.png`.                                                                          |
 | `GET /login`         | —    | Sign-in page; redirects signed-in users to `next`.                                                        |
 | `GET /app`           | ✓    | Redirects to `/app/databases`.                                                                            |
 | `GET /app/databases` | ✓    | Registered databases. `?register=1` opens the register modal.                                             |
