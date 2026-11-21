@@ -4,8 +4,8 @@
   "scripts": {
     "dev:hono": "tsx watch src/index.ts",
     "dev": "concurrently \"tsx watch src/index.ts\" \"tailwindcss -i ./src/global.css -o ./public/css/styles.css --watch\"",
-    "build": "dotenv run -f .env -- node scripts/build.js",
-    "start": "dotenv run -f .env -- node dist/index.js",
+    "build": "node scripts/build.js",
+    "start": "NODE_ENV=production node --enable-source-maps --import ./scripts/register-aliases.js dist/index.js",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "create-admin": "node scripts/create-admin.js",
