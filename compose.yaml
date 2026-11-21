@@ -2,14 +2,24 @@ name: querylens
 
 # Usage:
 #   cp .env.example .env   # then fill in the "Docker Compose" section
-#   docker compose up --build
+#   docker compose up --build -d
+#   docker compose run --rm migrate node scripts/create-admin.js --name "Ada Lovelace" --email ada@example.com
 #
 # Services:
-#   db      - metadata PostgreSQL
-#   migrate - applies drizzle/ migrations, then exits
-#   app     - QueryLens on http://localhost:${HOST_PORT:-8000}
+#   db      - metadata PostgreSQL (not published to the host)
+#   migrate - one-off: applies drizzle/ migrations, then exits (Dockerfile target `migrate`)
+#   app     - QueryLens on http://localhost:${HOST_PORT:-8000} (Dockerfile target `runtime`)
+#
+# Secrets come from .env (or the shell) at run time; they are never part of an image.
 
 x-database-url: &database-url postgres://${POSTGRES_USER:-querylens}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@db:5432/${POSTGRES_DB:-querylens}
+
+# hardening shared by the QueryLens containers.
+x-hardening: &hardening
+  init: true
+  cap_drop: [ALL] # port 8000 needs no Linux capabilities
+  security_opt:
+    - no-new-privileges:true
 
 services:
   db:
@@ -28,9 +38,11 @@ services:
       retries: 10
 
   migrate:
-    build: .
-    image: querylens-app:latest
-    command: ["node_modules/.bin/drizzle-kit", "migrate"]
+    <<: *hardening
+    build:
+      context: .
+      target: migrate
+    image: querylens-migrate:latest
     environment:
       DATABASE_URL: *database-url
     depends_on:
@@ -39,7 +51,10 @@ services:
     restart: "no"
 
   app:
-    build: .
+    <<: *hardening
+    build:
+      context: .
+      target: runtime
     image: querylens-app:latest
     restart: unless-stopped
     environment:
@@ -56,8 +71,19 @@ services:
       LOG_FILE_PATH: /app/logs
     ports:
       - "${HOST_PORT:-8000}:8000"
+    # read-only root filesystem: the only writable paths are the logs volume and /tmp
+    read_only: true
+    tmpfs:
+      - /tmp
     volumes:
       - logs:/app/logs
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+    # the app waits up to 10 s for an in-flight collection cycle on SIGTERM
+    stop_grace_period: 20s
     depends_on:
       migrate:
         condition: service_completed_successfully

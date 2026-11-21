@@ -1,19 +1,21 @@
-node_modules
-dist
-build
-out
-logs
-*.log
-.git
-.gitignore
-.env
-.env.*
-!.env.example
-.vscode
-.idea
-.DS_Store
-docs
+# ollowlist: only what the Dockerfile stages COPY is sent to the build context.
+# everything else: .git, .env files, node_modules, dist, logs, docs, editor files is excluded.
+*
+
+!package.json
+!pnpm-lock.yaml
+!pnpm-workspace.yaml
+!tsconfig.json
+!tsconfig.build.json
+!drizzle.config.ts
+!drizzle
+!src
+!public
+!scripts
+
+# never send these, even from inside allowed folders
 public/css/styles.css
-Dockerfile
-compose.yaml
-.dockerignore
+**/.env
+**/.env.*
+**/*.log
+**/.DS_Store
